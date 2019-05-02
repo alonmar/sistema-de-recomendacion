@@ -64,31 +64,11 @@ data %>% group_by(user_id,negocio_id) %>%
 
 Como vimos si una persona visita mas de una vez un mismo lugar esa observación aparecerá dos veces. Veamos cuantas personas y negocios únicos tenemos
 
-``` r
-cat("Usuarios unicos: ")
-```
-
     ## Usuarios unicos:
-
-``` r
-cat(unique(data$user_id) %>% length())
-```
 
     ## 2060
 
-``` r
-cat("\n")
-```
-
-``` r
-cat("Negocios unicos: ")
-```
-
     ## Negocios unicos:
-
-``` r
-cat(unique(data$negocio_id) %>% length())
-```
 
     ## 2876
 
@@ -201,15 +181,18 @@ v2 %>% kable()
 
 Haremos uso del coeficiente de [**Jaccard**](https://en.wikipedia.org/wiki/Jaccard_index), siendo el cociente de la intersección de dos conjuntos entre la unión de dichos conjuntos.
 
-$ $
+$$ \\frac{A \\bigcap B }{A \\bigcup  B }$$
 
 En otras palabras dividiremos el numero de elementos que se encuentran en ambos conjuntos entre el numero de elementos únicos de ambos conjuntos.
 
 Ejemplo: **conjunto\_A = {a,b,c,c,d}** **conjunto\_B = {b,d,e}**
 
-*A*⋂*B* = (b,d) es decir solo tenemos **2** elementos que se encuentran en A y B *A*⋂*B* = (a,b,c,d,e) lo cual significa existen **5** elementos únicos en ambos conjuntos
+*A*⋂*B*
+ = (b,d) es decir solo tenemos **2** elementos que se encuentran en A y B
+*A*⋂*B*
+ = (a,b,c,d,e) lo cual significa existen **5** elementos únicos en ambos conjuntos
 
-$jaccar = \\frac{2}{5} = 0.4$
+$$jaccar = \\frac{2}{5} = 0.4$$
 
 De tal manera que el índice de jaccard nos indica que el conjunto A y B son similares en **0.4** en una escala de 0 a 1
 
@@ -338,9 +321,9 @@ recomendacion("190",data_matrix)
 Conclusiones
 ------------
 
-Este es nuestro primer ejemplo de algoritmo *No clasificado* y nuestro primer sistema de recomendación, es un ejemplo excelente para comprender ambos conceptos y como vimos en la medida que obtengamos mas data acerca de los intereses de los usuarios las recomendaciones serán mejor dadas. Te invito a que elijas un usuario y veas que recomendaciones existen para él, y también te invito a que en lugar de lugares visitados mas de una vez sean mas de 5 veces ¿que implicaciones tendrá? y ¿mas de 10 veces?.
+Este es nuestro primer ejemplo de algoritmo *No clasificado* y nuestro primer sistema de recomendación, es un ejemplo excelente para comprender ambos conceptos y como vimos en la medida que obtengamos mas data acerca de los intereses de los usuarios las recomendaciones serán mejor dadas. Te invito a que elijas un usuario y veas que recomendaciones existen para él, y también te invito a que en lugar de lugares visitados mas de una vez sean mas de 5 veces ¿Qué implicaciones tendrá? y ¿mas de 10 veces?.
 
 Fuentes
 -------
 
-<https://tidyr.tidyverse.org/reference/spread.html> <https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f>
+<https://tidyr.tidyverse.org/reference/spread.html> <https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f> <https://platzi.com/clases/data/>

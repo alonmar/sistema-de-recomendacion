@@ -14,7 +14,7 @@ options(digits=3)
 ```
 
 
-En el anterior [post](https://alonmar.github.io/knn-comida/), hablábamos de un algoritmo que se encuentra en la categoría de algoritmos ***supervisados**, ya que cada observación tiene una etiqueta que indica la clase correspondiente, ahora toca el turno de un ejemplo de algoritmo **no supervisado**. Crearemos un sistema de recomendaciones para visitar nuevos negocios.
+En el anterior [post](https://alonmar.github.io/knn-comida/), hablábamos de un algoritmo que se encuentra en la categoría de algoritmos **supervisados**, ya que cada observación tiene una etiqueta que indica la clase correspondiente, ahora toca el turno de un ejemplo de algoritmo **no supervisado**. Crearemos un sistema de recomendaciones para visitar nuevos negocios.
 
 Después de completar este tutorial, sabrás:
 
@@ -35,7 +35,7 @@ library(knitr)     #Presentación de tablas
 Cargamos la base de datos
 
 ```{r message=FALSE, warning=FALSE}
-data <- read_csv("data/checkins.csv")
+data <- read_csv("https://raw.githubusercontent.com/alonmar/sistema-de-recomendacion/master/data/checkins.csv")
 #Nombramos las variables
 names(data) <- c("user_id","negocio_id")
 head(data,10) %>% kable()
@@ -237,6 +237,6 @@ recomendacion("190",data_matrix)
 Este es nuestro primer ejemplo de algoritmo _No clasificado_ y nuestro primer sistema de recomendación, es un ejemplo excelente para comprender ambos conceptos y como vimos en la medida que obtengamos mas data acerca de los intereses de los usuarios las recomendaciones serán mejor dadas.
 Te invito a que elijas un usuario y veas que recomendaciones existen para él, y también te invito a que en lugar de lugares visitados mas de una vez sean mas de 5 veces ¿que implicaciones tendrá? y ¿mas de 10 veces?.  
 
-
-https://tidyr.tidyverse.org/reference/spread.html
-https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f
+## Fuentes
+[https://tidyr.tidyverse.org/reference/spread.html](https://tidyr.tidyverse.org/reference/spread.html)
+[https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f](https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f)

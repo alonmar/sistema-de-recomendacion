@@ -241,7 +241,7 @@ $(document).ready(function () {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-text-begin -->
-<p>En el anterior <a href="https://alonmar.github.io/knn-comida/">post</a>, hablabamos de un algortimo que se encuentra en la categorita de algoritmos *<strong>supervizados</strong>, ya que cada observacion tiene una etiqueta que indica la clase correspondiente, ahora toca el turno de un ejemplo de algoritmo <strong>no supervizado</strong>. Crearemos un sistema de recomendaciones para vicitar nuevos negocios.</p>
+<p>En el anterior <a href="https://alonmar.github.io/knn-comida/">post</a>, hablábamos de un algoritmo que se encuentra en la categoría de algoritmos <strong>supervisados</strong>, ya que cada observación tiene una etiqueta que indica la clase correspondiente, ahora toca el turno de un ejemplo de algoritmo <strong>no supervisado</strong>. Crearemos un sistema de recomendaciones para visitar nuevos negocios.</p>
 <p>Después de completar este tutorial, sabrás:</p>
 <ul>
 <li>Que es el coeficiente jaccard</li>
@@ -249,7 +249,7 @@ $(document).ready(function () {
 </li>
 <li>Como crear un sistema de recomendaciones</li>
 </ul>
-<p>Nos apoyaremos del <a href="https://sites.google.com/site/yangdingqi/home/foursquare-dataset">dataset</a> el cual incluye los ids de personas y negocios, y las vicitas que hicieron las personas a dichos negocios tomado de <a href="https://es.foursquare.com/">foursquare</a></p>
+<p>Nos apoyaremos del <a href="https://sites.google.com/site/yangdingqi/home/foursquare-dataset">dataset</a> el cual incluye los ids de personas y negocios, y las visitas que hicieron las personas a dichos negocios tomado de <a href="https://es.foursquare.com/">foursquare</a></p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2NhcmdhbW9zIGxvcyBwYXF1ZXRlcyBuZWNlc2FyaW9zXG5saWJyYXJ5KHRpZHl2ZXJzZSkgI01hbmlwdWxhY2nDs25cbmxpYnJhcnkoa25pdHIpICAgICAjUHJlc2VudGFjacOzbiBkZSB0YWJsYXNcbmBgYCJ9 -->
@@ -262,10 +262,11 @@ library(knitr)     #Presentación de tablas</code></pre>
 <p>Cargamos la base de datos</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YSA8LSByZWFkX2NzdihcImRhdGEvY2hlY2tpbnMuY3N2XCIpXG5uYW1lcyhkYXRhKSA8LSBjKFwidXNlcl9pZFwiLFwibmVnb2Npb19pZFwiKSBcbmhlYWQoZGF0YSwxMCkgJT4lIGthYmxlKCkgXG5gYGAifQ== -->
-<pre class="r"><code>data &lt;- read_csv(&quot;data/checkins.csv&quot;)
-names(data) &lt;- c(&quot;user_id&quot;,&quot;negocio_id&quot;) 
-head(data,10) %&gt;% kable() </code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YSA8LSByZWFkX2NzdihcImh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9hbG9ubWFyL3Npc3RlbWEtZGUtcmVjb21lbmRhY2lvbi9tYXN0ZXIvZGF0YS9jaGVja2lucy5jc3ZcIilcbiNOb21icmFtb3MgbGFzIHZhcmlhYmxlc1xubmFtZXMoZGF0YSkgPC0gYyhcInVzZXJfaWRcIixcIm5lZ29jaW9faWRcIilcbmhlYWQoZGF0YSwxMCkgJT4lIGthYmxlKClcbmBgYCJ9 -->
+<pre class="r"><code>data &lt;- read_csv(&quot;https://raw.githubusercontent.com/alonmar/sistema-de-recomendacion/master/data/checkins.csv&quot;)
+#Nombramos las variables
+names(data) &lt;- c(&quot;user_id&quot;,&quot;negocio_id&quot;)
+head(data,10) %&gt;% kable()</code></pre>
 <!-- rnb-source-end -->
 
 <!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
@@ -329,9 +330,9 @@ head(data,10) %&gt;% kable() </code></pre>
 <p>Veamos cuantas veces visito cada persona a cada negocio</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YSAlPiUgZ3JvdXBfYnkodXNlcl9pZCxuZWdvY2lvX2lkKSAlPiUgXG4gIHN1bW1hcmlzZShuID0gbigpKSAlPiUgYXJyYW5nZShkZXNjKG4pKSAlPiUgXG4gIGhlYWQoMTUpICU+JSBrYWJsZSgpXG5gYGAifQ== -->
-<pre class="r"><code>data %&gt;% group_by(user_id,negocio_id) %&gt;% 
-  summarise(n = n()) %&gt;% arrange(desc(n)) %&gt;% 
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YSAlPiUgZ3JvdXBfYnkodXNlcl9pZCxuZWdvY2lvX2lkKSAlPiVcbiAgc3VtbWFyaXNlKG4gPSBuKCkpICU+JSBhcnJhbmdlKGRlc2MobikpICU+JVxuICBoZWFkKDE1KSAlPiUga2FibGUoKVxuYGBgIn0= -->
+<pre class="r"><code>data %&gt;% group_by(user_id,negocio_id) %&gt;%
+  summarise(n = n()) %&gt;% arrange(desc(n)) %&gt;%
   head(15) %&gt;% kable()</code></pre>
 <!-- rnb-source-end -->
 
@@ -429,576 +430,176 @@ head(data,10) %&gt;% kable() </code></pre>
 
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Como vimos si una persona visita mas de una vez un mismo lugar esa observacion aparecera dos veces. Veamos cuantas personas y negocios unicos tenemos</p>
+<p>Como vimos si una persona visita mas de una vez un mismo lugar esa observación aparecerá dos veces. Veamos cuantas personas y negocios únicos tenemos</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2F0KFwiVXN1YXJpb3MgdW5pY29zOiBcIilcbmBgYCJ9 -->
-<pre class="r"><code>cat(&quot;Usuarios unicos: &quot;)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2F0KFwiVXN1YXJpb3MgdW5pY29zOiBcIilcbmNhdCh1bmlxdWUoZGF0YSR1c2VyX2lkKSAlPiUgbGVuZ3RoKCkpXG5jYXQoXCJcXG5cIilcbmNhdChcIk5lZ29jaW9zIHVuaWNvczogXCIpXG5jYXQodW5pcXVlKGRhdGEkbmVnb2Npb19pZCkgJT4lIGxlbmd0aCgpKVxuYGBgIn0= -->
+<pre class="r"><code>cat(&quot;Usuarios unicos: &quot;)
+cat(unique(data$user_id) %&gt;% length())
+cat(&quot;\n&quot;)
+cat(&quot;Negocios unicos: &quot;)
+cat(unique(data$negocio_id) %&gt;% length())</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiVXN1YXJpb3MgdW5pY29zOiBcbiJ9 -->
-<pre><code>Usuarios unicos: </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2F0KHVuaXF1ZShkYXRhJHVzZXJfaWQpICU+JSBsZW5ndGgoKSlcbmBgYCJ9 -->
-<pre class="r"><code>cat(unique(data$user_id) %&gt;% length())</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiMjA2MFxuIn0= -->
-<pre><code>2060</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2F0KFwiXFxuXCIpXG5gYGAifQ== -->
-<pre class="r"><code>cat(&quot;\n&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2F0KFwiTmVnb2Npb3MgdW5pY29zOiBcIilcbmBgYCJ9 -->
-<pre class="r"><code>cat(&quot;Negocios unicos: &quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTmVnb2Npb3MgdW5pY29zOiBcbiJ9 -->
-<pre><code>Negocios unicos: </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2F0KHVuaXF1ZShkYXRhJG5lZ29jaW9faWQpICU+JSBsZW5ndGgoKSlcbmBgYCJ9 -->
-<pre class="r"><code>cat(unique(data$negocio_id) %&gt;% length())</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiMjg3NlxuIn0= -->
-<pre><code>2876</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Para este tutorial eliminaramos las observaciones que solo tienen una visita, ya que nos puede indicar que no se tomo la molestia para regresar a ese negocio, en cambio nos quedaremos que con aquellos que regresaron una o mas veces.</p>
+<p>Para este tutorial elimináramos las observaciones que solo tienen una visita, ya que nos puede indicar que no se tomo la molestia de regresar a ese negocio, en cambio nos quedaremos con aquellos que regresaron una o mas veces.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZmlsdGVyX2RhdGEgPC0gZGF0YSAlPiUgZ3JvdXBfYnkodXNlcl9pZCxuZWdvY2lvX2lkKSAlPiUgXG4gIHN1bW1hcmlzZShuID0gbigpKSAlPiUgYXJyYW5nZShkZXNjKG4pKSAlPiUgZmlsdGVyKG4gPiAxKVxuZmlsdGVyX2RhdGEgJT4lIGhlYWQoNSkgJT4lICBrYWJsZSgpXG5gYGAifQ== -->
-<pre class="r"><code>filter_data &lt;- data %&gt;% group_by(user_id,negocio_id) %&gt;% 
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZmlsdGVyX2RhdGEgPC0gZGF0YSAlPiUgZ3JvdXBfYnkodXNlcl9pZCxuZWdvY2lvX2lkKSAlPiVcbiAgc3VtbWFyaXNlKG4gPSBuKCkpICU+JSBhcnJhbmdlKGRlc2MobikpICU+JSBmaWx0ZXIobiA+IDEpXG5cbmZpbHRlcl9kYXRhICU+JSBoZWFkKDUpICU+JSAga2FibGUoKVxuZmlsdGVyX2RhdGEgJT4lIHRhaWwoNSkgJT4lICBrYWJsZSgpXG5cbmBgYCJ9 -->
+<pre class="r"><code>filter_data &lt;- data %&gt;% group_by(user_id,negocio_id) %&gt;%
   summarise(n = n()) %&gt;% arrange(desc(n)) %&gt;% filter(n &gt; 1)
-filter_data %&gt;% head(5) %&gt;%  kable()</code></pre>
+
+filter_data %&gt;% head(5) %&gt;%  kable()
+filter_data %&gt;% tail(5) %&gt;%  kable()
+</code></pre>
 <!-- rnb-source-end -->
-<p>
-<!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
-
-<table>
-<thead>
-<tr class="header">
-<th align="right">user_id</th>
-<th align="right">negocio_id</th>
-<th align="right">n</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">51957</td>
-<td align="right">435580</td>
-<td align="right">149</td>
-</tr>
-<tr class="even">
-<td align="right">51445</td>
-<td align="right">64971</td>
-<td align="right">92</td>
-</tr>
-<tr class="odd">
-<td align="right">17238</td>
-<td align="right">9209</td>
-<td align="right">86</td>
-</tr>
-<tr class="even">
-<td align="right">8952</td>
-<td align="right">39242</td>
-<td align="right">74</td>
-</tr>
-<tr class="odd">
-<td align="right">133970</td>
-<td align="right">41096</td>
-<td align="right">73</td>
-</tr>
-</tbody>
-</table>
-
-
-<!-- rnb-html-end -->
- <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZmlsdGVyX2RhdGEgJT4lIHRhaWwoNSkgJT4lICBrYWJsZSgpXG5gYGAifQ== --></p>
-<pre class="r"><code>filter_data %&gt;% tail(5) %&gt;%  kable()</code></pre>
-<!-- rnb-source-end -->
-
-<!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
-
-<table>
-<thead>
-<tr class="header">
-<th align="right">user_id</th>
-<th align="right">negocio_id</th>
-<th align="right">n</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">266532</td>
-<td align="right">4310</td>
-<td align="right">2</td>
-</tr>
-<tr class="even">
-<td align="right">266532</td>
-<td align="right">10604</td>
-<td align="right">2</td>
-</tr>
-<tr class="odd">
-<td align="right">266532</td>
-<td align="right">22768</td>
-<td align="right">2</td>
-</tr>
-<tr class="even">
-<td align="right">266712</td>
-<td align="right">4889</td>
-<td align="right">2</td>
-</tr>
-<tr class="odd">
-<td align="right">266712</td>
-<td align="right">9953</td>
-<td align="right">2</td>
-</tr>
-</tbody>
-</table>
-
-
-<!-- rnb-html-end -->
-
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Ahora lo que haremos es lo que se conoce como <a href="https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f"><strong>one hot coding</strong></a>. Basicamente se trata de crear una matriz donde si un valor corresponde tendremos un <strong>“1”</strong> y de lo contrario tendremos un <strong>0</strong></p>
+<p>Ahora lo que haremos es lo que se conoce como <a href="https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f"><strong>one hot coding</strong></a>. Básicamente se trata de crear una matriz donde si un valor corresponde tendremos un <strong>“1”</strong> y de lo contrario tendremos un <strong>0</strong></p>
 <p>Veamos esta tabla:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-
-<!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
-
-<table>
-<thead>
-<tr class="header">
-<th align="left">Author</th>
-<th align="left">Nacionalidad</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">Juan Rulfo</td>
-<td align="left">MEX</td>
-</tr>
-<tr class="even">
-<td align="left">Gabriel García Márquez</td>
-<td align="left">COL</td>
-</tr>
-<tr class="odd">
-<td align="left">Octavio Paz</td>
-<td align="left">MEX</td>
-</tr>
-</tbody>
-</table>
-
-
-<!-- rnb-html-end -->
-
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Ahora transformada en one-hot se veria así</p>
+<p>Ahora transformada en one-hot se vería así</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-
-<!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
-
-<table>
-<thead>
-<tr class="header">
-<th align="left">Author</th>
-<th align="right">COL</th>
-<th align="right">MEX</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">Gabriel García Márquez</td>
-<td align="right">1</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="left">Juan Rulfo</td>
-<td align="right">0</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="left">Octavio Paz</td>
-<td align="right">0</td>
-<td align="right">1</td>
-</tr>
-</tbody>
-</table>
-
-
-<!-- rnb-html-end -->
-
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Sin embargo para nuestro ejemplo colocaremos NAs en lugar de ceros, ya que nos apoyaremos de la funcíon <strong>drop_na()</strong>.</p>
+<p>Sin embargo para nuestro ejemplo colocaremos NAs en lugar de ceros, ya que nos apoyaremos de la función <strong>drop_na()</strong>.</p>
 <p>De tal manera que esta sería nuestra nueva matriz, donde las filas corresponden a cada ID de negocio, y las columnas a cada ID de usuario.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YV9tYXRyaXggPC0gZmlsdGVyX2RhdGEgJT4lIHNlbGVjdCgtbikgJT4lIFxuICBtdXRhdGUoY291bnQ9IDEpICU+JSBcbiAgc3ByZWFkKHVzZXJfaWQsY291bnQpIFxuZGF0YV9tYXRyaXhbMToxMCwxOjEwXSAlPiUga2FibGUoKVxuYGBgIn0= -->
-<pre class="r"><code>data_matrix &lt;- filter_data %&gt;% select(-n) %&gt;% 
-  mutate(count= 1) %&gt;% 
-  spread(user_id,count) 
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YV9tYXRyaXggPC0gZmlsdGVyX2RhdGEgJT4lIHNlbGVjdCgtbikgJT4lXG4gIG11dGF0ZShjb3VudD0gMSkgJT4lXG4gIHNwcmVhZCh1c2VyX2lkLGNvdW50KVxuXG5kYXRhX21hdHJpeFsxOjEwLDE6MTBdICU+JSBrYWJsZSgpXG5gYGAifQ== -->
+<pre class="r"><code>data_matrix &lt;- filter_data %&gt;% select(-n) %&gt;%
+  mutate(count= 1) %&gt;%
+  spread(user_id,count)
+
 data_matrix[1:10,1:10] %&gt;% kable()</code></pre>
 <!-- rnb-source-end -->
-
-<!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
-
-<table>
-<thead>
-<tr class="header">
-<th align="right">negocio_id</th>
-<th align="right">6</th>
-<th align="right">15</th>
-<th align="right">72</th>
-<th align="right">102</th>
-<th align="right">104</th>
-<th align="right">105</th>
-<th align="right">132</th>
-<th align="right">133</th>
-<th align="right">134</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">15</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="right">20</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="right">25</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="right">36</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="right">39</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="right">40</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="right">42</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="right">46</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="odd">
-<td align="right">47</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-<tr class="even">
-<td align="right">52</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-</tr>
-</tbody>
-</table>
-
-
-<!-- rnb-html-end -->
-
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Solo vemos NAs, ya que para esos negocios y esos usuario no existe intereaccion, sin embargo veamos un caso concreto</p>
-<p>Selecionamos un id de usuario y eliminaremos los NA</p>
+<p>Solo vemos NAs, ya que para esos negocios y esos usuario no existe interacción, sin embargo veamos un caso concreto</p>
+<p>Seleccionemos un id de usuario y eliminaremos los NA</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudjEgPC0gZGF0YV9tYXRyaXggJT4lIHNlbGVjdChuZWdvY2lvX2lkLCcxNDg2MCcpICAlPiUgZHJvcF9uYSgpXG52MSAlPiUga2FibGUoKVxuYGBgIn0= -->
 <pre class="r"><code>v1 &lt;- data_matrix %&gt;% select(negocio_id,'14860')  %&gt;% drop_na()
 v1 %&gt;% kable()</code></pre>
 <!-- rnb-source-end -->
-
-<!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
-
-<table>
-<thead>
-<tr class="header">
-<th align="right">negocio_id</th>
-<th align="right">14860</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">177</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">578</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">837</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">7542</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">11872</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">13630</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">14790</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">16126</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">19954</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">24001</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">76187</td>
-<td align="right">1</td>
-</tr>
-</tbody>
-</table>
-
-
-<!-- rnb-html-end -->
-
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>selecionaremos otro id de usuario para ver que tan similares son con el anterior</p>
+<p>seleccionaremos otro id de usuario para ver que tan similares son con el anterior</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudjIgPC0gZGF0YV9tYXRyaXggJT4lIHNlbGVjdChuZWdvY2lvX2lkLCcyMjI1MDUnKSAgJT4lIGRyb3BfbmEoKVxudjIgJT4lIGthYmxlKClcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudjIgPC0gZGF0YV9tYXRyaXggJT4lIHNlbGVjdChuZWdvY2lvX2lkLCcyMjI1MDUnKSAgJT4lIGRyb3BfbmEoKVxudjIgJT4lIGthYmxlKClcblxuYGBgIn0= -->
 <pre class="r"><code>v2 &lt;- data_matrix %&gt;% select(negocio_id,'222505')  %&gt;% drop_na()
-v2 %&gt;% kable()</code></pre>
+v2 %&gt;% kable()
+</code></pre>
 <!-- rnb-source-end -->
-
-<!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
-
-<table>
-<thead>
-<tr class="header">
-<th align="right">negocio_id</th>
-<th align="right">222505</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">177</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">5867</td>
-<td align="right">1</td>
-</tr>
-</tbody>
-</table>
-
-
-<!-- rnb-html-end -->
-
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Haremos uso del coeficiente de <a href="https://en.wikipedia.org/wiki/Jaccard_index"><strong>Jaccard</strong></a>, siendo el cociente de la interseccion de dos conjuntos entre la union de dichos conjuntos.</p>
+<p>Haremos uso del coeficiente de <a href="https://en.wikipedia.org/wiki/Jaccard_index"><strong>Jaccard</strong></a>, siendo el cociente de la intersección de dos conjuntos entre la unión de dichos conjuntos.</p>
 <p>$ $</p>
-<p>En otras palabras divideremos el numero de elementos que se encuentran en ambos conjuntos entre el numero de elementos unicos de ambos conjuntos.</p>
+<p>En otras palabras dividiremos el numero de elementos que se encuentran en ambos conjuntos entre el numero de elementos únicos de ambos conjuntos.</p>
 <p>Ejemplo: <strong>conjunto_A = {a,b,c,c,d}</strong> <strong>conjunto_B = {b,d,e}</strong></p>
-<p><span class="math inline">\(A \bigcap B\)</span> = (b,d) es decir solo tenemos <strong>2</strong> elementos que se encuentran en A y B <span class="math inline">\(A \bigcap B\)</span> = (a,b,c,d,e) lo cual significa existen <strong>5</strong> elementos unicos en ambos conjuntos</p>
+<p><span class="math inline">\(A \bigcap B\)</span> = (b,d) es decir solo tenemos <strong>2</strong> elementos que se encuentran en A y B <span class="math inline">\(A \bigcap B\)</span> = (a,b,c,d,e) lo cual significa existen <strong>5</strong> elementos únicos en ambos conjuntos</p>
 <p><span class="math inline">\(jaccar = \frac{2}{5} = 0.4\)</span></p>
-<p>De tal manera que el indice de jaccard nos indica que el conjunto A y B son similares en <strong>0.4</strong> en una escala de 0 a 1</p>
+<p>De tal manera que el índice de jaccard nos indica que el conjunto A y B son similares en <strong>0.4</strong> en una escala de 0 a 1</p>
 <p>Regresando a los 2 usuarios que tomamos antes veamos que tan similares son</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaW50ZXJzZWN0ID0gbGVuZ3RoKGludGVyc2VjdCh2MSRuZWdvY2lvX2lkLHYyJG5lZ29jaW9faWQpKVxudW5pb24gPSBsZW5ndGgodW5pcXVlKHYxJG5lZ29jaW9faWQsdjIkbmVnb2Npb19pZCkpXG5qYWNjYXJkID0gaW50ZXJzZWN0L3VuaW9uXG5qYWNjYXJkXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaW50ZXJzZWN0ID0gbGVuZ3RoKGludGVyc2VjdCh2MSRuZWdvY2lvX2lkLHYyJG5lZ29jaW9faWQpKVxudW5pb24gPSBsZW5ndGgodW5pcXVlKHYxJG5lZ29jaW9faWQsdjIkbmVnb2Npb19pZCkpXG5cbmphY2NhcmQgPSBpbnRlcnNlY3QvdW5pb25cbmphY2NhcmRcbmBgYCJ9 -->
 <pre class="r"><code>intersect = length(intersect(v1$negocio_id,v2$negocio_id))
 union = length(unique(v1$negocio_id,v2$negocio_id))
+
 jaccard = intersect/union
 jaccard</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDAuMDkwOVxuIn0= -->
-<pre><code>[1] 0.0909</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Lo cual significa que que ambos usuarios son 0.0909 similares.</p>
-<p>Acontinuacion crearemos una funcion que nos ayudara a calcular el indice de Jaccard</p>
+<p>Lo cual significa que ambos usuarios son 0.0909 similares.</p>
+<p>A continuación crearemos una función que nos ayudara a calcular el índice de Jaccard</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuamFjY2FyZCA8LSBmdW5jdGlvbihpbmRleCx2Mix2MSkge1xuICB2MiA8LSBkYXRhLmZyYW1lKGluZGV4LHYyKVxuICB2MiA8LSB2MiAlPiUgZHJvcF9uYSgpXG4gIGxlbmd0aChpbnRlcnNlY3QodjEkbmVnb2Npb19pZCx2MiRpbmRleCkpL2xlbmd0aCh1bmlxdWUodjEkbmVnb2Npb19pZCx2MiRpbmRleCkpIFxufVxuYGBgIn0= -->
-<pre class="r"><code>jaccard &lt;- function(index,v2,v1) {
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5qYWNjYXJkIDwtIGZ1bmN0aW9uKGluZGV4LHYyLHYxKSB7XG4gIHYyIDwtIGRhdGEuZnJhbWUoaW5kZXgsdjIpXG4gIHYyIDwtIHYyICU+JSBkcm9wX25hKClcbiAgbGVuZ3RoKGludGVyc2VjdCh2MSRuZWdvY2lvX2lkLHYyJGluZGV4KSkvbGVuZ3RoKHVuaXF1ZSh2MSRuZWdvY2lvX2lkLHYyJGluZGV4KSlcbn1cbmBgYCJ9 -->
+<pre class="r"><code>
+jaccard &lt;- function(index,v2,v1) {
   v2 &lt;- data.frame(index,v2)
   v2 &lt;- v2 %&gt;% drop_na()
-  length(intersect(v1$negocio_id,v2$index))/length(unique(v1$negocio_id,v2$index)) 
+  length(intersect(v1$negocio_id,v2$index))/length(unique(v1$negocio_id,v2$index))
 }</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Ahora aplicaremos esta funcion a toda la matriz antes creada para conocer que similitud mantiene con cada uno de los otros usuarios</p>
+<p>Ahora aplicaremos esta función a toda la matriz antes creada para conocer que similitud mantiene con cada uno de los otros usuarios</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2NyZWFtb3MgZWwgdmVjdG9yIHF1ZSB1c2FyZW1vcyBwYXJhIGJ1c2NhciBlbCBjb2VmaWNpZW50ZSBkZSBqYWNjYXJkXG52MSA8LSBkYXRhX21hdHJpeCAlPiUgc2VsZWN0KG5lZ29jaW9faWQsJzE0ODYwJykgJT4lIGRyb3BfbmEoKVxuI2d1YXJkYW1vcyBsb3MgaW5kaWNlcyBkZSBsb3MgbmVnaWNpb3NcbmluZGV4IDwtIGRhdGFfbWF0cml4JG5lZ29jaW9faWRcbiMgYXBsaWNhbW9zIGVsIGNvZWZpY2llbnRlIGRlIGphY2NhcmQgcGFyYSB0b2RhcyBsYXMgY29sdW1uYXMgXG5yZXN1bHQgPC0gc2FwcGx5KGRhdGFfbWF0cml4ICU+JSBzZWxlY3QoLTEsLScxNDg2MCcpLFxuICAgICAgICAgICAgICAgICBmdW5jdGlvbih4KSBqYWNjYXJkKGluZGV4LHgsdjEpKVxuIyBGaWx0cmFtb3MgbG9zIHJlc3VsdGFkb3MgcGFyYSBzb2xvIHF1ZWRhcm5vcyBjb24gYXF1ZWxsb3MgcXVlIHRpZW5lbiB1biBcbiMgY29lZmljaWVudGUgbWF5b3IgYSBjZXJvXG5yZXN1bHQgPC0gcmVzdWx0W3Jlc3VsdCA+IDBdXG4jIGd1YXJkYW1vcyBsb3MgaWRzIGRlIGxvcyBjbGllbnRlcyBcbm5hbWVzIDwtIHJlc3VsdCAlPiUgbmFtZXMoKVxuI29ic2VydmFtb3Mgc29sbyBlbCB0b3AgMTBcbmRhdGEuZnJhbWUobmFtZXMgPSBuYW1lcyxzaW1pbGl0dWQgPSBjKHJlc3VsdCkpICU+JSBcbiAgIGFycmFuZ2UoZGVzYyhzaW1pbGl0dWQpKSAlPiUgaGVhZCgxMClcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2NyZWFtb3MgZWwgdmVjdG9yIHF1ZSB1c2FyZW1vcyBwYXJhIGJ1c2NhciBlbCBjb2VmaWNpZW50ZSBkZSBqYWNjYXJkXG52MSA8LSBkYXRhX21hdHJpeCAlPiUgc2VsZWN0KG5lZ29jaW9faWQsJzE0ODYwJykgJT4lIGRyb3BfbmEoKVxuI2d1YXJkYW1vcyBsb3MgaW5kaWNlcyBkZSBsb3MgbmVnaWNpb3NcbmluZGV4IDwtIGRhdGFfbWF0cml4JG5lZ29jaW9faWRcbiMgYXBsaWNhbW9zIGVsIGNvZWZpY2llbnRlIGRlIGphY2NhcmQgcGFyYSB0b2RhcyBsYXMgY29sdW1uYXNcbnJlc3VsdCA8LSBzYXBwbHkoZGF0YV9tYXRyaXggJT4lIHNlbGVjdCgtMSwtJzE0ODYwJyksXG4gICAgICAgICAgICAgICAgIGZ1bmN0aW9uKHgpIGphY2NhcmQoaW5kZXgseCx2MSkpXG5cblxuIyBGaWx0cmFtb3MgbG9zIHJlc3VsdGFkb3MgcGFyYSBzb2xvIHF1ZWRhcm5vcyBjb24gYXF1ZWxsb3MgcXVlIHRpZW5lbiB1blxuIyBjb2VmaWNpZW50ZSBtYXlvciBhIGNlcm9cbnJlc3VsdCA8LSByZXN1bHRbcmVzdWx0ID4gMF1cbiMgZ3VhcmRhbW9zIGxvcyBpZHMgZGUgbG9zIHVzdWFyaW9zXG5uYW1lcyA8LSByZXN1bHQgJT4lIG5hbWVzKClcblxuI29ic2VydmFtb3Mgc29sbyBlbCB0b3AgMTBcbmRhdGEuZnJhbWUobmFtZXMgPSBuYW1lcyxzaW1pbGl0dWQgPSBjKHJlc3VsdCkpICU+JVxuICAgYXJyYW5nZShkZXNjKHNpbWlsaXR1ZCkpICU+JSBoZWFkKDEwKVxuYGBgIn0= -->
 <pre class="r"><code>#creamos el vector que usaremos para buscar el coeficiente de jaccard
 v1 &lt;- data_matrix %&gt;% select(negocio_id,'14860') %&gt;% drop_na()
 #guardamos los indices de los negicios
 index &lt;- data_matrix$negocio_id
-# aplicamos el coeficiente de jaccard para todas las columnas 
+# aplicamos el coeficiente de jaccard para todas las columnas
 result &lt;- sapply(data_matrix %&gt;% select(-1,-'14860'),
                  function(x) jaccard(index,x,v1))
-# Filtramos los resultados para solo quedarnos con aquellos que tienen un 
+
+
+# Filtramos los resultados para solo quedarnos con aquellos que tienen un
 # coeficiente mayor a cero
 result &lt;- result[result &gt; 0]
-# guardamos los ids de los clientes 
+# guardamos los ids de los usuarios
 names &lt;- result %&gt;% names()
+
 #observamos solo el top 10
-data.frame(names = names,similitud = c(result)) %&gt;% 
+data.frame(names = names,similitud = c(result)) %&gt;%
    arrange(desc(similitud)) %&gt;% head(10)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImRhdGEuZnJhbWUiXSwibmNvbCI6MiwibnJvdyI6MTB9LCJyZGYiOiJINHNJQUFBQUFBQUFCcVZVelc3VFFCRGUrQWNVbzFhVk9KUVhRT0xTYUhmMm4wTVJFdkFBbkhyaFlCSVhMRnk3U2h6ZzJMZmlFVGp6UW9WeDRwMTFmQ1hTWlBmYm1XKyttZjN4eDNjM1VOd1VqTEdFcGZtQ0pTbE9zd1QvRml4ankySDh5Vmo2L0JEQTBqTWNoK0JYYU9kbzEyZ0Q0eG5hQzdTWGFCTE5vTDJlSlhyU1ZOK3Jab2V6QzdTM1lWVndKUVVmVVM2NHNYb0VtUkJXVVpnRXJReUZTZWxrZEJtdVhYUTVhYUxMYTlDRUZDYTNFVG5uTFdscEp5aUY1UkN6V3lSRjVJVG1tZ0lSaWVoU1hoSUNyclFsR2dqakJCQUNpRWtRYVd0NVJBNmlBQ2lRdERlZ0JXMVVCa1phY2xqdHFIOXdWZ2JkWEhJdi9RUVk2bEVLeitVRTJPZ0JxU0tRMmxBQkVuZU1SS1ZUaWtTbEIwczZDamp0ZWFaVWxGSEltQUFiUzhPOUFwSlJSb3NZNXJoU0VSZ0hCTHlJN1NDRDdnMkNTVHZhK2xpbmRwN09NdGRlQUdVejNQREF5UXlQZFJvUXprY0FkQ1V6QTJvUzVTWHBHeVhpcVJrdlNESXozbE10Rmp5bnhBN2xpZTlBbStCSjQyM09IWjRGTVR4b1I2VjRoWTdUNTVhdm0zSVhYaHU5d2R0eTNYZGJuRDJPTDdoNDgvdjluLzdUNVFjYWYvM2ZPQytqTGUrcVVFWnl1bmdFeTExOVZ6ZDF2OS9NcU10dDkyTVY2TU9YSjNsZ2gxOXhERXovenJvck5tVmZybTYzU0RsMmVKTHVhWGZmMTEyTHlaTGhjNWJQeUl2dGJPRmkzdzdpbTZ2MTEzMzc3UXJVK08xYmpIWTJqc1Zrbmh3MXMxQlpIdmE5YXIvVWJSWGFiOHJQVlRPQ2MrenkwT1RxZmx1M2ZXZ0ZWM2VydnV2TEVGZXN1eWFzSEkvdjhSLzVlSmx0dlFVQUFBPT0ifQ== -->
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["names"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["similitud"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"45720","2":"0.1818","_rn_":"1"},{"1":"181505","2":"0.1818","_rn_":"2"},{"1":"836","2":"0.0909","_rn_":"3"},{"1":"1174","2":"0.0909","_rn_":"4"},{"1":"1581","2":"0.0909","_rn_":"5"},{"1":"2637","2":"0.0909","_rn_":"6"},{"1":"4403","2":"0.0909","_rn_":"7"},{"1":"6083","2":"0.0909","_rn_":"8"},{"1":"6243","2":"0.0909","_rn_":"9"},{"1":"6998","2":"0.0909","_rn_":"10"}],"options":{"columns":{"min":{},"max":[10],"total":[2]},"rows":{"min":[10],"max":[10],"total":[10]},"pages":{}}}
-  </script>
-</div>
-<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Perfecto!</p>
-<p>Como vemos el usuarios con el ID 14860 mantiene una mayor similitud con el usuarios 45720, a continuacion recomendaremos lugares que ya visito el segundo usuarios y que el primero aun no conoce</p>
+<p>Como vemos el usuarios con el ID 14860 mantiene una mayor similitud con el usuarios 45720, a continuación recomendaremos lugares que ya visito el segundo usuarios y que el primero aun no conoce</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudjEgPC0gZGF0YV9tYXRyaXggJT4lIHNlbGVjdChuZWdvY2lvX2lkLCcxNDg2MCcpICU+JSBkcm9wX25hKClcbnYyIDwtIGRhdGFfbWF0cml4ICU+JSBzZWxlY3QobmVnb2Npb19pZCwnNDU3MjAnKSAlPiUgZHJvcF9uYSgpXG52MiRuZWdvY2lvX2lkIFshdjIkbmVnb2Npb19pZCAlaW4lIHYxJG5lZ29jaW9faWRdIFxuYGBgIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudjEgPC0gZGF0YV9tYXRyaXggJT4lIHNlbGVjdChuZWdvY2lvX2lkLCcxNDg2MCcpICU+JSBkcm9wX25hKClcbnYyIDwtIGRhdGFfbWF0cml4ICU+JSBzZWxlY3QobmVnb2Npb19pZCwnNDU3MjAnKSAlPiUgZHJvcF9uYSgpXG5cbnYyJG5lZ29jaW9faWQgWyF2MiRuZWdvY2lvX2lkICVpbiUgdjEkbmVnb2Npb19pZF1cbmBgYCJ9 -->
 <pre class="r"><code>v1 &lt;- data_matrix %&gt;% select(negocio_id,'14860') %&gt;% drop_na()
 v2 &lt;- data_matrix %&gt;% select(negocio_id,'45720') %&gt;% drop_na()
-v2$negocio_id [!v2$negocio_id %in% v1$negocio_id] </code></pre>
+
+v2$negocio_id [!v2$negocio_id %in% v1$negocio_id]</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiIFsxXSAgICAgMTU1ICAgICAyNDMgICAgIDYzOSAgICAgNjUzICAgICA5ODUgICAgMTQ4MyAgICA0OTIwICAgIDY0MzQgICAgNjc2NCAgICA3NTA3ICAgIDc5OTlcblsxMl0gICAgODk1MyAgICA5MzA3ICAgIDk0NDggICAxMDE5MiAgIDEwNzg0ICAgMTIxNTkgICAxMjQ5NiAgIDEyNTAwICAgMTI4MzMgICAxMjg3NSAgIDEyOTEwXG5bMjNdICAgMTMyMzMgICAxMzY2MSAgIDEzODkwICAgMTQ3MTQgICAxNTEzOSAgIDE1MTg5ICAgMTU0NjMgICAxNjUwNiAgIDE4MTc3ICAgMTgxOTEgICAyNTY5NVxuWzM0XSAgIDI1NzkxICAgMjU4ODMgICAyNjA1MSAgIDI3NTUzICAgMjg3ODggICAyOTU5NCAgIDMxNTQ4ICAgMzI3ODMgICA3MTY0MSAgMTA4NDA4ICAxMzYzMzVcbls0NV0gMTc2MDc0OFxuIn0= -->
-<pre><code> [1]     155     243     639     653     985    1483    4920    6434    6764    7507    7999
-[12]    8953    9307    9448   10192   10784   12159   12496   12500   12833   12875   12910
-[23]   13233   13661   13890   14714   15139   15189   15463   16506   18177   18191   25695
-[34]   25791   25883   26051   27553   28788   29594   31548   32783   71641  108408  136335
-[45] 1760748</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Ahora metamos todo esto en una sola función donde seleccionemos el ID al cual nos interesa recomendarle establacimientos de acuerdo a el usuarios que mas se le parezca</p>
+<p>Ahora metamos todo esto en una sola función donde seleccionemos el ID al cual nos interesa recomendarle establecimientos de acuerdo a el usuarios que mas se le parezca</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVjb21lbmRhY2lvbiA8LSBmdW5jdGlvbihpZCxkYXRhKSB7XG5pZCA8LSBhcy5jaGFyYWN0ZXIoaWQpXG4jY3JlYW1vcyBlbCB2ZWN0b3IgcXVlIHVzYXJlbW9zIHBhcmEgYnVzY2FyIGVsIGNvZWZpY2llbnRlIGRlIGphY2NhcmRcbnYxIDwtIGRhdGEgJT4lIHNlbGVjdChuZWdvY2lvX2lkLGlkKSAlPiUgZHJvcF9uYSgpXG4jZ3VhcmRhbW9zIGxvcyBpbmRpY2VzIGRlIGxvcyBuZWdpY2lvc1xuaW5kZXggPC0gZGF0YSRuZWdvY2lvX2lkXG4jIGFwbGljYW1vcyBlbCBjb2VmaWNpZW50ZSBkZSBqYWNjYXJkIHBhcmEgdG9kYXMgbGFzIGNvbHVtbmFzIFxucmVzdWx0IDwtIHNhcHBseShkYXRhICU+JSBzZWxlY3QoLTEsLWlkKSxcbiAgICAgICAgICAgICAgICAgZnVuY3Rpb24oeCkgamFjY2FyZChpbmRleCx4LHYxKSlcbiMgRmlsdHJhbW9zIGxvcyByZXN1bHRhZG9zIHBhcmEgc29sbyBxdWVkYXJub3MgY29uIGFxdWVsbG9zIHF1ZSB0aWVuZW4gdW4gXG4jIGNvZWZpY2llbnRlIG1heW9yIGEgY2Vyb1xucmVzdWx0IDwtIHJlc3VsdFtyZXN1bHQgPiAwXVxuIyBndWFyZGFtb3MgbG9zIGlkcyBkZSBsb3MgY2xpZW50ZXMgXG5uYW1lcyA8LSByZXN1bHQgJT4lIG5hbWVzKClcbmlkX3JlY29tZW5kZXIgPC0gZGF0YS5mcmFtZShuYW1lcyA9IG5hbWVzLHNpbWlsaXR1ZCA9IGMocmVzdWx0KSkgJT4lIFxuICAgYXJyYW5nZShkZXNjKHNpbWlsaXR1ZCkpIFxudjIgPC0gZGF0YSAlPiUgc2VsZWN0KG5lZ29jaW9faWQsYXMuY2hhcmFjdGVyKGlkX3JlY29tZW5kZXJbMSwxXSkpICU+JSBkcm9wX25hKClcbmNhdChcIlF1aXphcyB0ZSBpbnRlcmVjZW4gZXN0b3MgbHVnYXJlczogXFxuXFxuXCIpXG5kYXRhLmZyYW1lKG5lZ29jaW9faWQgPSAodjIkbmVnb2Npb19pZCBbIXYyJG5lZ29jaW9faWQgJWluJSB2MSRuZWdvY2lvX2lkXSkpICU+JVxuICBrYWJsZSgpXG59XG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVjb21lbmRhY2lvbiA8LSBmdW5jdGlvbihpZCxkYXRhKSB7XG5pZCA8LSBhcy5jaGFyYWN0ZXIoaWQpXG4jY3JlYW1vcyBlbCB2ZWN0b3IgcXVlIHVzYXJlbW9zIHBhcmEgYnVzY2FyIGVsIGNvZWZpY2llbnRlIGRlIGphY2NhcmRcbnYxIDwtIGRhdGEgJT4lIHNlbGVjdChuZWdvY2lvX2lkLGlkKSAlPiUgZHJvcF9uYSgpXG4jZ3VhcmRhbW9zIGxvcyDDrW5kaWNlcyBkZSBsb3MgbmVnb2Npb3NcbmluZGV4IDwtIGRhdGEkbmVnb2Npb19pZFxuIyBhcGxpY2Ftb3MgZWwgY29lZmljaWVudGUgZGUgamFjY2FyZCBwYXJhIHRvZGFzIGxhcyBjb2x1bW5hcyBleGNlcHRvIGxhIHByaW1lcmFcbiMgcXVlIGVzIGRvbmRlIHNlIGVuY3VlbnRyYW4gbG9zIMOtbmRpY2VzIHkgbGEgY29sdW1uYSBkZWwgdXN1YXJpb1xucmVzdWx0IDwtIHNhcHBseShkYXRhICU+JSBzZWxlY3QoLTEsLWlkKSxcbiAgICAgICAgICAgICAgICAgZnVuY3Rpb24oeCkgamFjY2FyZChpbmRleCx4LHYxKSlcblxuXG4jIEZpbHRyYW1vcyBsb3MgcmVzdWx0YWRvcyBwYXJhIHNvbG8gcXVlZGFybm9zIGNvbiBhcXVlbGxvcyBxdWUgdGllbmVuIHVuXG4jIGNvZWZpY2llbnRlIG1heW9yIGEgY2Vyb1xucmVzdWx0IDwtIHJlc3VsdFtyZXN1bHQgPiAwXVxuIyBndWFyZGFtb3MgbG9zIGlkcyBkZSBsb3MgdXN1YXJpb3Ncbm5hbWVzIDwtIHJlc3VsdCAlPiUgbmFtZXMoKVxuXG5pZF9yZWNvbWVuZGVyIDwtIGRhdGEuZnJhbWUobmFtZXMgPSBuYW1lcyxzaW1pbGl0dWQgPSBjKHJlc3VsdCkpICU+JVxuICAgYXJyYW5nZShkZXNjKHNpbWlsaXR1ZCkpXG5cbnYyIDwtIGRhdGEgJT4lIHNlbGVjdChuZWdvY2lvX2lkLGFzLmNoYXJhY3RlcihpZF9yZWNvbWVuZGVyWzEsMV0pKSAlPiUgZHJvcF9uYSgpXG5cbmNhdChcIlF1aXrDoXMgdGUgaW50ZXJlc2VuIGVzdG9zIGx1Z2FyZXM6IFxcblxcblwiKVxuZGF0YS5mcmFtZShuZWdvY2lvX2lkID0gKHYyJG5lZ29jaW9faWQgWyF2MiRuZWdvY2lvX2lkICVpbiUgdjEkbmVnb2Npb19pZF0pKSAlPiVcbiAga2FibGUoKVxuXG59XG5gYGAifQ== -->
 <pre class="r"><code>recomendacion &lt;- function(id,data) {
 id &lt;- as.character(id)
 #creamos el vector que usaremos para buscar el coeficiente de jaccard
 v1 &lt;- data %&gt;% select(negocio_id,id) %&gt;% drop_na()
-#guardamos los indices de los negicios
+#guardamos los índices de los negocios
 index &lt;- data$negocio_id
-# aplicamos el coeficiente de jaccard para todas las columnas 
+# aplicamos el coeficiente de jaccard para todas las columnas excepto la primera
+# que es donde se encuentran los índices y la columna del usuario
 result &lt;- sapply(data %&gt;% select(-1,-id),
                  function(x) jaccard(index,x,v1))
-# Filtramos los resultados para solo quedarnos con aquellos que tienen un 
+
+
+# Filtramos los resultados para solo quedarnos con aquellos que tienen un
 # coeficiente mayor a cero
 result &lt;- result[result &gt; 0]
-# guardamos los ids de los clientes 
+# guardamos los ids de los usuarios
 names &lt;- result %&gt;% names()
-id_recomender &lt;- data.frame(names = names,similitud = c(result)) %&gt;% 
-   arrange(desc(similitud)) 
+
+id_recomender &lt;- data.frame(names = names,similitud = c(result)) %&gt;%
+   arrange(desc(similitud))
+
 v2 &lt;- data %&gt;% select(negocio_id,as.character(id_recomender[1,1])) %&gt;% drop_na()
-cat(&quot;Quizas te interecen estos lugares: \n\n&quot;)
+
+cat(&quot;Quizás te interesen estos lugares: \n\n&quot;)
 data.frame(negocio_id = (v2$negocio_id [!v2$negocio_id %in% v1$negocio_id])) %&gt;%
   kable()
+
 }</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
@@ -1008,77 +609,19 @@ data.frame(negocio_id = (v2$negocio_id [!v2$negocio_id %in% v1$negocio_id])) %&g
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVjb21lbmRhY2lvbihcIjE5MFwiLGRhdGFfbWF0cml4KVxuYGBgIn0= -->
 <pre class="r"><code>recomendacion(&quot;190&quot;,data_matrix)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiUXVpemFzIHRlIGludGVyZWNlbiBlc3RvcyBsdWdhcmVzOiBcbiJ9 -->
-<pre><code>Quizas te interecen estos lugares: </code></pre>
-<!-- rnb-output-end -->
-
-<!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
-
-<table>
-<thead>
-<tr class="header">
-<th align="right">negocio_id</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">20</td>
-</tr>
-<tr class="even">
-<td align="right">254</td>
-</tr>
-<tr class="odd">
-<td align="right">602</td>
-</tr>
-<tr class="even">
-<td align="right">1050</td>
-</tr>
-<tr class="odd">
-<td align="right">1086</td>
-</tr>
-<tr class="even">
-<td align="right">5222</td>
-</tr>
-<tr class="odd">
-<td align="right">16953</td>
-</tr>
-<tr class="even">
-<td align="right">18009</td>
-</tr>
-<tr class="odd">
-<td align="right">19768</td>
-</tr>
-<tr class="even">
-<td align="right">28999</td>
-</tr>
-<tr class="odd">
-<td align="right">40088</td>
-</tr>
-<tr class="even">
-<td align="right">70790</td>
-</tr>
-<tr class="odd">
-<td align="right">77986</td>
-</tr>
-<tr class="even">
-<td align="right">155221</td>
-</tr>
-</tbody>
-</table>
-
-
-<!-- rnb-html-end -->
-
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <div id="conclusiones" class="section level2">
 <h2>Conclusiones</h2>
-<p>Este es nuestro primer ejemplo de algoritmo <em>No clasificado</em> y nuestro primer sistema de recomendacíon, es un ejemplo ecelente para comprender ambos comceptos y como vimos en la medida que obtengamos mas data acerca de los intereces de los usuarios las recomendaciones seran mejor dadas. Te invito a que elijas un usuario y veas que recomendaciones exiten para él, y tambien te invito a que en lugar de lugares visitados mas de una vez sean mas de 5 veces ¿que implicaciones tendra? y ¿mas de 10 veces?.</p>
+<p>Este es nuestro primer ejemplo de algoritmo <em>No clasificado</em> y nuestro primer sistema de recomendación, es un ejemplo excelente para comprender ambos conceptos y como vimos en la medida que obtengamos mas data acerca de los intereses de los usuarios las recomendaciones serán mejor dadas. Te invito a que elijas un usuario y veas que recomendaciones existen para él, y también te invito a que en lugar de lugares visitados mas de una vez sean mas de 5 veces ¿que implicaciones tendrá? y ¿mas de 10 veces?.</p>
+</div>
+<div id="fuentes" class="section level2">
+<h2>Fuentes</h2>
 <p><a href="https://tidyr.tidyverse.org/reference/spread.html" class="uri">https://tidyr.tidyverse.org/reference/spread.html</a> <a href="https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f" class="uri">https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f</a></p>
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6DQogIG1kX2RvY3VtZW50Og0KICAgIHZhcmlhbnQ6IG1hcmtkb3duX2dpdGh1Yg0KICBodG1sX25vdGVib29rOiBudWxsDQogIGh0bWxfZG9jdW1lbnQ6DQogICAgZGZfcHJpbnQ6IHBhZ2VkDQogIHBkZl9kb2N1bWVudDogZGVmYXVsdA0KLS0tDQoNCmBgYHtyIGluY2x1ZGU9RkFMU0V9DQpvcHRpb25zKGRpZ2l0cz0zKQ0KYGBgDQoNCg0KRW4gZWwgYW50ZXJpb3IgW3Bvc3RdKGh0dHBzOi8vYWxvbm1hci5naXRodWIuaW8va25uLWNvbWlkYS8pLCBoYWJsYWJhbW9zIGRlIHVuIGFsZ29ydGltbyBxdWUgc2UgZW5jdWVudHJhIGVuIGxhIGNhdGVnb3JpdGEgZGUgYWxnb3JpdG1vcyAqKipzdXBlcnZpemFkb3MqKiwgeWEgcXVlIGNhZGEgb2JzZXJ2YWNpb24gdGllbmUgdW5hIGV0aXF1ZXRhIHF1ZSBpbmRpY2EgbGEgY2xhc2UgY29ycmVzcG9uZGllbnRlLCBhaG9yYSB0b2NhIGVsIHR1cm5vIGRlIHVuIGVqZW1wbG8gZGUgYWxnb3JpdG1vICoqbm8gc3VwZXJ2aXphZG8qKi4gQ3JlYXJlbW9zIHVuIHNpc3RlbWEgZGUgcmVjb21lbmRhY2lvbmVzIHBhcmEgdmljaXRhciBudWV2b3MgbmVnb2Npb3MuDQoNCkRlc3B1w6lzIGRlIGNvbXBsZXRhciBlc3RlIHR1dG9yaWFsLCBzYWJyw6FzOg0KDQorIFF1ZSBlcyBlbCBjb2VmaWNpZW50ZSBqYWNjYXJkDQorIENyZWFyIHVuYSBtYXRyaXogb25lIGhvdCAgDQorIENvbW8gY3JlYXIgdW4gc2lzdGVtYSBkZSByZWNvbWVuZGFjaW9uZXMgIA0KDQpOb3MgYXBveWFyZW1vcyBkZWwgW2RhdGFzZXRdKGh0dHBzOi8vc2l0ZXMuZ29vZ2xlLmNvbS9zaXRlL3lhbmdkaW5ncWkvaG9tZS9mb3Vyc3F1YXJlLWRhdGFzZXQpIGVsIGN1YWwgaW5jbHV5ZSBsb3MgaWRzIGRlIHBlcnNvbmFzIHkgbmVnb2Npb3MsIHkgbGFzIHZpY2l0YXMgcXVlIGhpY2llcm9uIGxhcyBwZXJzb25hcyBhIGRpY2hvcyBuZWdvY2lvcyB0b21hZG8gZGUgW2ZvdXJzcXVhcmVdKGh0dHBzOi8vZXMuZm91cnNxdWFyZS5jb20vKQ0KDQoNCmBgYHtyIG1lc3NhZ2U9RkFMU0UsIHdhcm5pbmc9RkFMU0V9DQojY2FyZ2Ftb3MgbG9zIHBhcXVldGVzIG5lY2VzYXJpb3MNCmxpYnJhcnkodGlkeXZlcnNlKSAjTWFuaXB1bGFjacOzbg0KbGlicmFyeShrbml0cikgICAgICNQcmVzZW50YWNpw7NuIGRlIHRhYmxhcw0KDQpgYGANCg0KQ2FyZ2Ftb3MgbGEgYmFzZSBkZSBkYXRvcw0KDQpgYGB7ciBtZXNzYWdlPUZBTFNFLCB3YXJuaW5nPUZBTFNFfQ0KZGF0YSA8LSByZWFkX2NzdigiZGF0YS9jaGVja2lucy5jc3YiKQ0KI05vbWJyYW1vcyBsYXMgdmFyaWFibGVzDQpuYW1lcyhkYXRhKSA8LSBjKCJ1c2VyX2lkIiwibmVnb2Npb19pZCIpIA0KaGVhZChkYXRhLDEwKSAlPiUga2FibGUoKSANCmBgYA0KDQpWZWFtb3MgY3VhbnRhcyB2ZWNlcyB2aXNpdG8gY2FkYSBwZXJzb25hIGEgY2FkYSBuZWdvY2lvDQoNCmBgYHtyfQ0KDQpkYXRhICU+JSBncm91cF9ieSh1c2VyX2lkLG5lZ29jaW9faWQpICU+JSANCiAgc3VtbWFyaXNlKG4gPSBuKCkpICU+JSBhcnJhbmdlKGRlc2MobikpICU+JSANCiAgaGVhZCgxNSkgJT4lIGthYmxlKCkNCmBgYA0KDQpDb21vIHZpbW9zICBzaSB1bmEgcGVyc29uYSB2aXNpdGEgbWFzIGRlIHVuYSB2ZXogdW4gbWlzbW8gbHVnYXIgZXNhIG9ic2VydmFjaW9uIGFwYXJlY2VyYSBkb3MgdmVjZXMuIFZlYW1vcyBjdWFudGFzIHBlcnNvbmFzIHkgbmVnb2Npb3MgdW5pY29zIHRlbmVtb3MNCg0KYGBge3J9DQpjYXQoIlVzdWFyaW9zIHVuaWNvczogIikNCmNhdCh1bmlxdWUoZGF0YSR1c2VyX2lkKSAlPiUgbGVuZ3RoKCkpDQpjYXQoIlxuIikNCmNhdCgiTmVnb2Npb3MgdW5pY29zOiAiKQ0KY2F0KHVuaXF1ZShkYXRhJG5lZ29jaW9faWQpICU+JSBsZW5ndGgoKSkNCmBgYA0KDQpQYXJhIGVzdGUgdHV0b3JpYWwgZWxpbWluYXJhbW9zIGxhcyBvYnNlcnZhY2lvbmVzIHF1ZSBzb2xvIHRpZW5lbiB1bmEgdmlzaXRhLCB5YSBxdWUgbm9zIHB1ZWRlIGluZGljYXIgcXVlIG5vIHNlIHRvbW8gbGEgbW9sZXN0aWEgcGFyYSByZWdyZXNhciBhIGVzZSBuZWdvY2lvLCBlbiBjYW1iaW8gbm9zIHF1ZWRhcmVtb3MgcXVlIGNvbiBhcXVlbGxvcyBxdWUgcmVncmVzYXJvbiB1bmEgbyBtYXMgdmVjZXMuDQoNCmBgYHtyfQ0KZmlsdGVyX2RhdGEgPC0gZGF0YSAlPiUgZ3JvdXBfYnkodXNlcl9pZCxuZWdvY2lvX2lkKSAlPiUgDQogIHN1bW1hcmlzZShuID0gbigpKSAlPiUgYXJyYW5nZShkZXNjKG4pKSAlPiUgZmlsdGVyKG4gPiAxKQ0KDQpmaWx0ZXJfZGF0YSAlPiUgaGVhZCg1KSAlPiUgIGthYmxlKCkNCmZpbHRlcl9kYXRhICU+JSB0YWlsKDUpICU+JSAga2FibGUoKQ0KDQpgYGANCg0KQWhvcmEgbG8gcXVlIGhhcmVtb3MgZXMgbG8gcXVlIHNlIGNvbm9jZSBjb21vIFsqKm9uZSBob3QgY29kaW5nKipdKGh0dHBzOi8vaGFja2Vybm9vbi5jb20vd2hhdC1pcy1vbmUtaG90LWVuY29kaW5nLXdoeS1hbmQtd2hlbi1kby15b3UtaGF2ZS10by11c2UtaXQtZTNjNjE4NmQwMDhmKS4gDQpCYXNpY2FtZW50ZSBzZSB0cmF0YSBkZSBjcmVhciB1bmEgbWF0cml6IGRvbmRlIHNpIHVuIHZhbG9yIGNvcnJlc3BvbmRlIHRlbmRyZW1vcyB1biAqKiIxIioqIHkgZGUgbG8gY29udHJhcmlvIHRlbmRyZW1vcyB1biAqKjAqKg0KDQpWZWFtb3MgZXN0YSB0YWJsYToNCg0KYGBge3IgZWNobz1GQUxTRX0NCnRpYmJsZSgnQXV0aG9yJz0gYygnSnVhbiBSdWxmbycsJ0dhYnJpZWwgR2FyY8OtYSBNw6FycXVleicsJ09jdGF2aW8gUGF6JyksIA0KICAgICAgICdOYWNpb25hbGlkYWQnID0gYygnTUVYJywnQ09MJywnTUVYJykNCiAgKSAlPiUga2FibGUoKQ0KYGBgDQoNCkFob3JhIHRyYW5zZm9ybWFkYSBlbiBvbmUtaG90IHNlIHZlcmlhIGFzw60NCmBgYHtyIGVjaG89RkFMU0V9DQp0aWJibGUoJ0F1dGhvcic9IGMoJ0p1YW4gUnVsZm8nLCdHYWJyaWVsIEdhcmPDrWEgTcOhcnF1ZXonLCdPY3RhdmlvIFBheicpLCANCiAgICAgICAnTmFjaW9uYWxpZGFkJyA9IGMoJ01FWCcsJ0NPTCcsJ01FWCcpDQogICkgJT4lIG11dGF0ZShjb3VudD0gMSkgJT4lIA0KICBzcHJlYWQoTmFjaW9uYWxpZGFkLGNvdW50LGZpbGwgPSAwKSAgJT4lIGthYmxlKCkNCmBgYA0KDQoNClNpbiBlbWJhcmdvIHBhcmEgbnVlc3RybyBlamVtcGxvIGNvbG9jYXJlbW9zIE5BcyBlbiBsdWdhciBkZSBjZXJvcywgeWEgcXVlIG5vcyBhcG95YXJlbW9zIGRlIGxhIGZ1bmPDrW9uICoqZHJvcF9uYSgpKiouDQoNCg0KRGUgdGFsIG1hbmVyYSBxdWUgZXN0YSBzZXLDrWEgbnVlc3RyYSBudWV2YSBtYXRyaXosIGRvbmRlIGxhcyBmaWxhcyBjb3JyZXNwb25kZW4gYSBjYWRhIElEIGRlIG5lZ29jaW8sIHkgbGFzIGNvbHVtbmFzIGEgY2FkYSBJRCBkZSB1c3VhcmlvLg0KDQoNCmBgYHtyfQ0KZGF0YV9tYXRyaXggPC0gZmlsdGVyX2RhdGEgJT4lIHNlbGVjdCgtbikgJT4lIA0KICBtdXRhdGUoY291bnQ9IDEpICU+JSANCiAgc3ByZWFkKHVzZXJfaWQsY291bnQpIA0KDQpkYXRhX21hdHJpeFsxOjEwLDE6MTBdICU+JSBrYWJsZSgpDQpgYGANCg0KU29sbyB2ZW1vcyBOQXMsIHlhIHF1ZSBwYXJhIGVzb3MgbmVnb2Npb3MgeSBlc29zIHVzdWFyaW8gbm8gZXhpc3RlIGludGVyZWFjY2lvbiwgc2luIGVtYmFyZ28gdmVhbW9zIHVuIGNhc28gY29uY3JldG8NCg0KU2VsZWNpb25hbW9zIHVuIGlkIGRlIHVzdWFyaW8geSBlbGltaW5hcmVtb3MgbG9zIE5BDQoNCmBgYHtyfQ0KdjEgPC0gZGF0YV9tYXRyaXggJT4lIHNlbGVjdChuZWdvY2lvX2lkLCcxNDg2MCcpICAlPiUgZHJvcF9uYSgpDQp2MSAlPiUga2FibGUoKQ0KYGBgDQoNCnNlbGVjaW9uYXJlbW9zIG90cm8gaWQgZGUgdXN1YXJpbyBwYXJhIHZlciBxdWUgdGFuIHNpbWlsYXJlcyBzb24gY29uIGVsIGFudGVyaW9yDQoNCmBgYHtyfQ0KdjIgPC0gZGF0YV9tYXRyaXggJT4lIHNlbGVjdChuZWdvY2lvX2lkLCcyMjI1MDUnKSAgJT4lIGRyb3BfbmEoKQ0KdjIgJT4lIGthYmxlKCkNCg0KYGBgDQoNCkhhcmVtb3MgdXNvIGRlbCBjb2VmaWNpZW50ZSBkZSBbKipKYWNjYXJkKipdKGh0dHBzOi8vZW4ud2lraXBlZGlhLm9yZy93aWtpL0phY2NhcmRfaW5kZXgpLCBzaWVuZG8gZWwgY29jaWVudGUgZGUgbGEgaW50ZXJzZWNjaW9uIGRlIGRvcyBjb25qdW50b3MgZW50cmUgbGEgdW5pb24gZGUgZGljaG9zIGNvbmp1bnRvcy4NCg0KJCBcZnJhY3tBIFxiaWdjYXAgQiB9e0EgXGJpZ2N1cCAgQiB9JA0KDQpFbiBvdHJhcyBwYWxhYnJhcyBkaXZpZGVyZW1vcyBlbCBudW1lcm8gZGUgZWxlbWVudG9zIHF1ZSBzZSBlbmN1ZW50cmFuIGVuIGFtYm9zIGNvbmp1bnRvcyBlbnRyZSBlbCBudW1lcm8gZGUgZWxlbWVudG9zIHVuaWNvcyBkZSBhbWJvcyBjb25qdW50b3MuDQoNCkVqZW1wbG86DQoqKmNvbmp1bnRvX0EgPSB7YSxiLGMsYyxkfSoqDQoqKmNvbmp1bnRvX0IgPSB7YixkLGV9KioNCg0KJEEgXGJpZ2NhcCBCJCA9IChiLGQpIGVzIGRlY2lyIHNvbG8gdGVuZW1vcyAqKjIqKiBlbGVtZW50b3MgcXVlIHNlIGVuY3VlbnRyYW4gZW4gQSB5IEINCiRBIFxiaWdjYXAgQiQgPSAoYSxiLGMsZCxlKSBsbyBjdWFsIHNpZ25pZmljYSBleGlzdGVuICoqNSoqIGVsZW1lbnRvcyB1bmljb3MgZW4gYW1ib3MgY29uanVudG9zDQoNCiRqYWNjYXIgPSBcZnJhY3syfXs1fSA9IDAuNCQNCg0KRGUgdGFsIG1hbmVyYSBxdWUgZWwgaW5kaWNlIGRlIGphY2NhcmQgbm9zIGluZGljYSBxdWUgZWwgY29uanVudG8gQSB5IEIgc29uIHNpbWlsYXJlcyBlbiAqKjAuNCoqIGVuIHVuYSBlc2NhbGEgZGUgMCBhIDENCg0KUmVncmVzYW5kbyBhIGxvcyAyIHVzdWFyaW9zIHF1ZSB0b21hbW9zIGFudGVzIHZlYW1vcyBxdWUgdGFuIHNpbWlsYXJlcyBzb24NCg0KYGBge3J9DQppbnRlcnNlY3QgPSBsZW5ndGgoaW50ZXJzZWN0KHYxJG5lZ29jaW9faWQsdjIkbmVnb2Npb19pZCkpDQp1bmlvbiA9IGxlbmd0aCh1bmlxdWUodjEkbmVnb2Npb19pZCx2MiRuZWdvY2lvX2lkKSkNCg0KamFjY2FyZCA9IGludGVyc2VjdC91bmlvbg0KamFjY2FyZA0KYGBgDQoNCkxvIGN1YWwgc2lnbmlmaWNhIHF1ZSBxdWUgYW1ib3MgdXN1YXJpb3Mgc29uIDAuMDkwOSBzaW1pbGFyZXMuDQoNCkFjb250aW51YWNpb24gY3JlYXJlbW9zIHVuYSBmdW5jaW9uIHF1ZSBub3MgYXl1ZGFyYSBhIGNhbGN1bGFyIGVsIGluZGljZSBkZSBKYWNjYXJkDQoNCmBgYHtyfQ0KDQpqYWNjYXJkIDwtIGZ1bmN0aW9uKGluZGV4LHYyLHYxKSB7DQogIHYyIDwtIGRhdGEuZnJhbWUoaW5kZXgsdjIpDQogIHYyIDwtIHYyICU+JSBkcm9wX25hKCkNCiAgbGVuZ3RoKGludGVyc2VjdCh2MSRuZWdvY2lvX2lkLHYyJGluZGV4KSkvbGVuZ3RoKHVuaXF1ZSh2MSRuZWdvY2lvX2lkLHYyJGluZGV4KSkgDQp9DQpgYGANCg0KQWhvcmEgYXBsaWNhcmVtb3MgZXN0YSBmdW5jaW9uIGEgdG9kYSBsYSBtYXRyaXogYW50ZXMgY3JlYWRhIHBhcmEgY29ub2NlciBxdWUgc2ltaWxpdHVkIG1hbnRpZW5lIGNvbiBjYWRhIHVubyBkZSBsb3Mgb3Ryb3MgdXN1YXJpb3MNCg0KYGBge3J9DQojY3JlYW1vcyBlbCB2ZWN0b3IgcXVlIHVzYXJlbW9zIHBhcmEgYnVzY2FyIGVsIGNvZWZpY2llbnRlIGRlIGphY2NhcmQNCnYxIDwtIGRhdGFfbWF0cml4ICU+JSBzZWxlY3QobmVnb2Npb19pZCwnMTQ4NjAnKSAlPiUgZHJvcF9uYSgpDQojZ3VhcmRhbW9zIGxvcyBpbmRpY2VzIGRlIGxvcyBuZWdpY2lvcw0KaW5kZXggPC0gZGF0YV9tYXRyaXgkbmVnb2Npb19pZA0KIyBhcGxpY2Ftb3MgZWwgY29lZmljaWVudGUgZGUgamFjY2FyZCBwYXJhIHRvZGFzIGxhcyBjb2x1bW5hcyANCnJlc3VsdCA8LSBzYXBwbHkoZGF0YV9tYXRyaXggJT4lIHNlbGVjdCgtMSwtJzE0ODYwJyksDQogICAgICAgICAgICAgICAgIGZ1bmN0aW9uKHgpIGphY2NhcmQoaW5kZXgseCx2MSkpDQoNCg0KIyBGaWx0cmFtb3MgbG9zIHJlc3VsdGFkb3MgcGFyYSBzb2xvIHF1ZWRhcm5vcyBjb24gYXF1ZWxsb3MgcXVlIHRpZW5lbiB1biANCiMgY29lZmljaWVudGUgbWF5b3IgYSBjZXJvDQpyZXN1bHQgPC0gcmVzdWx0W3Jlc3VsdCA+IDBdDQojIGd1YXJkYW1vcyBsb3MgaWRzIGRlIGxvcyB1c3VhcmlvcyANCm5hbWVzIDwtIHJlc3VsdCAlPiUgbmFtZXMoKQ0KDQojb2JzZXJ2YW1vcyBzb2xvIGVsIHRvcCAxMA0KZGF0YS5mcmFtZShuYW1lcyA9IG5hbWVzLHNpbWlsaXR1ZCA9IGMocmVzdWx0KSkgJT4lIA0KICAgYXJyYW5nZShkZXNjKHNpbWlsaXR1ZCkpICU+JSBoZWFkKDEwKQ0KYGBgDQoNClBlcmZlY3RvIQ0KDQpDb21vIHZlbW9zIGVsIHVzdWFyaW9zIGNvbiBlbCBJRCAxNDg2MCBtYW50aWVuZSB1bmEgbWF5b3Igc2ltaWxpdHVkIGNvbiBlbCB1c3VhcmlvcyA0NTcyMCwgYSBjb250aW51YWNpb24gcmVjb21lbmRhcmVtb3MgbHVnYXJlcyBxdWUgeWEgdmlzaXRvIGVsIHNlZ3VuZG8gdXN1YXJpb3MgeSBxdWUgZWwgcHJpbWVybyBhdW4gbm8gY29ub2NlDQpgYGB7cn0NCnYxIDwtIGRhdGFfbWF0cml4ICU+JSBzZWxlY3QobmVnb2Npb19pZCwnMTQ4NjAnKSAlPiUgZHJvcF9uYSgpDQp2MiA8LSBkYXRhX21hdHJpeCAlPiUgc2VsZWN0KG5lZ29jaW9faWQsJzQ1NzIwJykgJT4lIGRyb3BfbmEoKQ0KDQp2MiRuZWdvY2lvX2lkIFshdjIkbmVnb2Npb19pZCAlaW4lIHYxJG5lZ29jaW9faWRdIA0KYGBgDQoNCkFob3JhIG1ldGFtb3MgdG9kbyBlc3RvIGVuIHVuYSBzb2xhIGZ1bmNpw7NuIGRvbmRlIHNlbGVjY2lvbmVtb3MgZWwgSUQgYWwgY3VhbCBub3MgaW50ZXJlc2EgcmVjb21lbmRhcmxlIGVzdGFibGFjaW1pZW50b3MgZGUgYWN1ZXJkbyBhIGVsIHVzdWFyaW9zIHF1ZSBtYXMgc2UgbGUgcGFyZXpjYSANCg0KYGBge3J9DQpyZWNvbWVuZGFjaW9uIDwtIGZ1bmN0aW9uKGlkLGRhdGEpIHsNCmlkIDwtIGFzLmNoYXJhY3RlcihpZCkNCiNjcmVhbW9zIGVsIHZlY3RvciBxdWUgdXNhcmVtb3MgcGFyYSBidXNjYXIgZWwgY29lZmljaWVudGUgZGUgamFjY2FyZA0KdjEgPC0gZGF0YSAlPiUgc2VsZWN0KG5lZ29jaW9faWQsaWQpICU+JSBkcm9wX25hKCkNCiNndWFyZGFtb3MgbG9zIGluZGljZXMgZGUgbG9zIG5lZ2ljaW9zDQppbmRleCA8LSBkYXRhJG5lZ29jaW9faWQNCiMgYXBsaWNhbW9zIGVsIGNvZWZpY2llbnRlIGRlIGphY2NhcmQgcGFyYSB0b2RhcyBsYXMgY29sdW1uYXMgDQpyZXN1bHQgPC0gc2FwcGx5KGRhdGEgJT4lIHNlbGVjdCgtMSwtaWQpLA0KICAgICAgICAgICAgICAgICBmdW5jdGlvbih4KSBqYWNjYXJkKGluZGV4LHgsdjEpKQ0KDQoNCiMgRmlsdHJhbW9zIGxvcyByZXN1bHRhZG9zIHBhcmEgc29sbyBxdWVkYXJub3MgY29uIGFxdWVsbG9zIHF1ZSB0aWVuZW4gdW4gDQojIGNvZWZpY2llbnRlIG1heW9yIGEgY2Vybw0KcmVzdWx0IDwtIHJlc3VsdFtyZXN1bHQgPiAwXQ0KIyBndWFyZGFtb3MgbG9zIGlkcyBkZSBsb3MgdXN1YXJpb3MgDQpuYW1lcyA8LSByZXN1bHQgJT4lIG5hbWVzKCkNCg0KaWRfcmVjb21lbmRlciA8LSBkYXRhLmZyYW1lKG5hbWVzID0gbmFtZXMsc2ltaWxpdHVkID0gYyhyZXN1bHQpKSAlPiUgDQogICBhcnJhbmdlKGRlc2Moc2ltaWxpdHVkKSkgDQoNCnYyIDwtIGRhdGEgJT4lIHNlbGVjdChuZWdvY2lvX2lkLGFzLmNoYXJhY3RlcihpZF9yZWNvbWVuZGVyWzEsMV0pKSAlPiUgZHJvcF9uYSgpDQoNCmNhdCgiUXVpemFzIHRlIGludGVyZWNlbiBlc3RvcyBsdWdhcmVzOiBcblxuIikNCmRhdGEuZnJhbWUobmVnb2Npb19pZCA9ICh2MiRuZWdvY2lvX2lkIFshdjIkbmVnb2Npb19pZCAlaW4lIHYxJG5lZ29jaW9faWRdKSkgJT4lDQogIGthYmxlKCkNCg0KfQ0KYGBgDQoNCmBgYHtyfQ0KcmVjb21lbmRhY2lvbigiMTkwIixkYXRhX21hdHJpeCkNCmBgYA0KDQojIyBDb25jbHVzaW9uZXMNCg0KRXN0ZSBlcyBudWVzdHJvIHByaW1lciBlamVtcGxvIGRlIGFsZ29yaXRtbyBfTm8gY2xhc2lmaWNhZG9fIHkgbnVlc3RybyBwcmltZXIgc2lzdGVtYSBkZSByZWNvbWVuZGFjw61vbiwgZXMgdW4gZWplbXBsbyBlY2VsZW50ZSBwYXJhIGNvbXByZW5kZXIgYW1ib3MgY29tY2VwdG9zIHkgY29tbyB2aW1vcyBlbiBsYSBtZWRpZGEgcXVlIG9idGVuZ2Ftb3MgbWFzIGRhdGEgYWNlcmNhIGRlIGxvcyBpbnRlcmVjZXMgZGUgbG9zIHVzdWFyaW9zIGxhcyByZWNvbWVuZGFjaW9uZXMgc2VyYW4gbWVqb3IgZGFkYXMuIA0KVGUgaW52aXRvIGEgcXVlIGVsaWphcyB1biB1c3VhcmlvIHkgdmVhcyBxdWUgcmVjb21lbmRhY2lvbmVzIGV4aXRlbiBwYXJhIMOpbCwgeSB0YW1iaWVuIHRlIGludml0byBhIHF1ZSBlbiBsdWdhciBkZSBsdWdhcmVzIHZpc2l0YWRvcyBtYXMgZGUgdW5hIHZleiBzZWFuIG1hcyBkZSA1IHZlY2VzIMK/cXVlIGltcGxpY2FjaW9uZXMgdGVuZHJhPyB5IMK/bWFzIGRlIDEwIHZlY2VzPy4gIA0KDQpodHRwczovL3RpZHlyLnRpZHl2ZXJzZS5vcmcvcmVmZXJlbmNlL3NwcmVhZC5odG1sDQpodHRwczovL2hhY2tlcm5vb24uY29tL3doYXQtaXMtb25lLWhvdC1lbmNvZGluZy13aHktYW5kLXdoZW4tZG8teW91LWhhdmUtdG8tdXNlLWl0LWUzYzYxODZkMDA4Zg==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6DQogIG1kX2RvY3VtZW50Og0KICAgIHZhcmlhbnQ6IG1hcmtkb3duX2dpdGh1Yg0KICBodG1sX25vdGVib29rOiBudWxsDQogIGh0bWxfZG9jdW1lbnQ6DQogICAgZGZfcHJpbnQ6IHBhZ2VkDQogIHBkZl9kb2N1bWVudDogZGVmYXVsdA0KLS0tDQoNCmBgYHtyIGluY2x1ZGU9RkFMU0V9DQpvcHRpb25zKGRpZ2l0cz0zKQ0KYGBgDQoNCg0KRW4gZWwgYW50ZXJpb3IgW3Bvc3RdKGh0dHBzOi8vYWxvbm1hci5naXRodWIuaW8va25uLWNvbWlkYS8pLCBoYWJsw6FiYW1vcyBkZSB1biBhbGdvcml0bW8gcXVlIHNlIGVuY3VlbnRyYSBlbiBsYSBjYXRlZ29yw61hIGRlIGFsZ29yaXRtb3MgKipzdXBlcnZpc2Fkb3MqKiwgeWEgcXVlIGNhZGEgb2JzZXJ2YWNpw7NuIHRpZW5lIHVuYSBldGlxdWV0YSBxdWUgaW5kaWNhIGxhIGNsYXNlIGNvcnJlc3BvbmRpZW50ZSwgYWhvcmEgdG9jYSBlbCB0dXJubyBkZSB1biBlamVtcGxvIGRlIGFsZ29yaXRtbyAqKm5vIHN1cGVydmlzYWRvKiouIENyZWFyZW1vcyB1biBzaXN0ZW1hIGRlIHJlY29tZW5kYWNpb25lcyBwYXJhIHZpc2l0YXIgbnVldm9zIG5lZ29jaW9zLg0KDQpEZXNwdcOpcyBkZSBjb21wbGV0YXIgZXN0ZSB0dXRvcmlhbCwgc2FicsOhczoNCg0KKyBRdWUgZXMgZWwgY29lZmljaWVudGUgamFjY2FyZA0KKyBDcmVhciB1bmEgbWF0cml6IG9uZSBob3QgIA0KKyBDb21vIGNyZWFyIHVuIHNpc3RlbWEgZGUgcmVjb21lbmRhY2lvbmVzICANCg0KTm9zIGFwb3lhcmVtb3MgZGVsIFtkYXRhc2V0XShodHRwczovL3NpdGVzLmdvb2dsZS5jb20vc2l0ZS95YW5nZGluZ3FpL2hvbWUvZm91cnNxdWFyZS1kYXRhc2V0KSBlbCBjdWFsIGluY2x1eWUgbG9zIGlkcyBkZSBwZXJzb25hcyB5IG5lZ29jaW9zLCB5IGxhcyB2aXNpdGFzIHF1ZSBoaWNpZXJvbiBsYXMgcGVyc29uYXMgYSBkaWNob3MgbmVnb2Npb3MgdG9tYWRvIGRlIFtmb3Vyc3F1YXJlXShodHRwczovL2VzLmZvdXJzcXVhcmUuY29tLykNCg0KDQpgYGB7ciBtZXNzYWdlPUZBTFNFLCB3YXJuaW5nPUZBTFNFfQ0KI2NhcmdhbW9zIGxvcyBwYXF1ZXRlcyBuZWNlc2FyaW9zDQpsaWJyYXJ5KHRpZHl2ZXJzZSkgI01hbmlwdWxhY2nDs24NCmxpYnJhcnkoa25pdHIpICAgICAjUHJlc2VudGFjacOzbiBkZSB0YWJsYXMNCg0KYGBgDQoNCkNhcmdhbW9zIGxhIGJhc2UgZGUgZGF0b3MNCg0KYGBge3IgbWVzc2FnZT1GQUxTRSwgd2FybmluZz1GQUxTRX0NCmRhdGEgPC0gcmVhZF9jc3YoImh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9hbG9ubWFyL3Npc3RlbWEtZGUtcmVjb21lbmRhY2lvbi9tYXN0ZXIvZGF0YS9jaGVja2lucy5jc3YiKQ0KI05vbWJyYW1vcyBsYXMgdmFyaWFibGVzDQpuYW1lcyhkYXRhKSA8LSBjKCJ1c2VyX2lkIiwibmVnb2Npb19pZCIpDQpoZWFkKGRhdGEsMTApICU+JSBrYWJsZSgpDQpgYGANCg0KVmVhbW9zIGN1YW50YXMgdmVjZXMgdmlzaXRvIGNhZGEgcGVyc29uYSBhIGNhZGEgbmVnb2Npbw0KDQpgYGB7cn0NCg0KZGF0YSAlPiUgZ3JvdXBfYnkodXNlcl9pZCxuZWdvY2lvX2lkKSAlPiUNCiAgc3VtbWFyaXNlKG4gPSBuKCkpICU+JSBhcnJhbmdlKGRlc2MobikpICU+JQ0KICBoZWFkKDE1KSAlPiUga2FibGUoKQ0KYGBgDQoNCkNvbW8gdmltb3MgIHNpIHVuYSBwZXJzb25hIHZpc2l0YSBtYXMgZGUgdW5hIHZleiB1biBtaXNtbyBsdWdhciBlc2Egb2JzZXJ2YWNpw7NuIGFwYXJlY2Vyw6EgZG9zIHZlY2VzLiBWZWFtb3MgY3VhbnRhcyBwZXJzb25hcyB5IG5lZ29jaW9zIMO6bmljb3MgdGVuZW1vcw0KDQpgYGB7cn0NCmNhdCgiVXN1YXJpb3MgdW5pY29zOiAiKQ0KY2F0KHVuaXF1ZShkYXRhJHVzZXJfaWQpICU+JSBsZW5ndGgoKSkNCmNhdCgiXG4iKQ0KY2F0KCJOZWdvY2lvcyB1bmljb3M6ICIpDQpjYXQodW5pcXVlKGRhdGEkbmVnb2Npb19pZCkgJT4lIGxlbmd0aCgpKQ0KYGBgDQoNClBhcmEgZXN0ZSB0dXRvcmlhbCBlbGltaW7DoXJhbW9zIGxhcyBvYnNlcnZhY2lvbmVzIHF1ZSBzb2xvIHRpZW5lbiB1bmEgdmlzaXRhLCB5YSBxdWUgbm9zIHB1ZWRlIGluZGljYXIgcXVlIG5vIHNlIHRvbW8gbGEgbW9sZXN0aWEgZGUgcmVncmVzYXIgYSBlc2UgbmVnb2NpbywgZW4gY2FtYmlvIG5vcyBxdWVkYXJlbW9zIGNvbiBhcXVlbGxvcyBxdWUgcmVncmVzYXJvbiB1bmEgbyBtYXMgdmVjZXMuDQoNCmBgYHtyfQ0KZmlsdGVyX2RhdGEgPC0gZGF0YSAlPiUgZ3JvdXBfYnkodXNlcl9pZCxuZWdvY2lvX2lkKSAlPiUNCiAgc3VtbWFyaXNlKG4gPSBuKCkpICU+JSBhcnJhbmdlKGRlc2MobikpICU+JSBmaWx0ZXIobiA+IDEpDQoNCmZpbHRlcl9kYXRhICU+JSBoZWFkKDUpICU+JSAga2FibGUoKQ0KZmlsdGVyX2RhdGEgJT4lIHRhaWwoNSkgJT4lICBrYWJsZSgpDQoNCmBgYA0KDQpBaG9yYSBsbyBxdWUgaGFyZW1vcyBlcyBsbyBxdWUgc2UgY29ub2NlIGNvbW8gWyoqb25lIGhvdCBjb2RpbmcqKl0oaHR0cHM6Ly9oYWNrZXJub29uLmNvbS93aGF0LWlzLW9uZS1ob3QtZW5jb2Rpbmctd2h5LWFuZC13aGVuLWRvLXlvdS1oYXZlLXRvLXVzZS1pdC1lM2M2MTg2ZDAwOGYpLg0KQsOhc2ljYW1lbnRlIHNlIHRyYXRhIGRlIGNyZWFyIHVuYSBtYXRyaXogZG9uZGUgc2kgdW4gdmFsb3IgY29ycmVzcG9uZGUgdGVuZHJlbW9zIHVuICoqIjEiKiogeSBkZSBsbyBjb250cmFyaW8gdGVuZHJlbW9zIHVuICoqMCoqDQoNClZlYW1vcyBlc3RhIHRhYmxhOg0KDQpgYGB7ciBlY2hvPUZBTFNFfQ0KdGliYmxlKCdBdXRob3InPSBjKCdKdWFuIFJ1bGZvJywnR2FicmllbCBHYXJjw61hIE3DoXJxdWV6JywnT2N0YXZpbyBQYXonKSwNCiAgICAgICAnTmFjaW9uYWxpZGFkJyA9IGMoJ01FWCcsJ0NPTCcsJ01FWCcpDQogICkgJT4lIGthYmxlKCkNCmBgYA0KDQpBaG9yYSB0cmFuc2Zvcm1hZGEgZW4gb25lLWhvdCBzZSB2ZXLDrWEgYXPDrQ0KYGBge3IgZWNobz1GQUxTRX0NCnRpYmJsZSgnQXV0aG9yJz0gYygnSnVhbiBSdWxmbycsJ0dhYnJpZWwgR2FyY8OtYSBNw6FycXVleicsJ09jdGF2aW8gUGF6JyksDQogICAgICAgJ05hY2lvbmFsaWRhZCcgPSBjKCdNRVgnLCdDT0wnLCdNRVgnKQ0KICApICU+JSBtdXRhdGUoY291bnQ9IDEpICU+JQ0KICBzcHJlYWQoTmFjaW9uYWxpZGFkLGNvdW50LGZpbGwgPSAwKSAgJT4lIGthYmxlKCkNCmBgYA0KDQoNClNpbiBlbWJhcmdvIHBhcmEgbnVlc3RybyBlamVtcGxvIGNvbG9jYXJlbW9zIE5BcyBlbiBsdWdhciBkZSBjZXJvcywgeWEgcXVlIG5vcyBhcG95YXJlbW9zIGRlIGxhIGZ1bmNpw7NuICoqZHJvcF9uYSgpKiouDQoNCg0KRGUgdGFsIG1hbmVyYSBxdWUgZXN0YSBzZXLDrWEgbnVlc3RyYSBudWV2YSBtYXRyaXosIGRvbmRlIGxhcyBmaWxhcyBjb3JyZXNwb25kZW4gYSBjYWRhIElEIGRlIG5lZ29jaW8sIHkgbGFzIGNvbHVtbmFzIGEgY2FkYSBJRCBkZSB1c3VhcmlvLg0KDQoNCmBgYHtyfQ0KZGF0YV9tYXRyaXggPC0gZmlsdGVyX2RhdGEgJT4lIHNlbGVjdCgtbikgJT4lDQogIG11dGF0ZShjb3VudD0gMSkgJT4lDQogIHNwcmVhZCh1c2VyX2lkLGNvdW50KQ0KDQpkYXRhX21hdHJpeFsxOjEwLDE6MTBdICU+JSBrYWJsZSgpDQpgYGANCg0KU29sbyB2ZW1vcyBOQXMsIHlhIHF1ZSBwYXJhIGVzb3MgbmVnb2Npb3MgeSBlc29zIHVzdWFyaW8gbm8gZXhpc3RlIGludGVyYWNjacOzbiwgc2luIGVtYmFyZ28gdmVhbW9zIHVuIGNhc28gY29uY3JldG8NCg0KU2VsZWNjaW9uZW1vcyB1biBpZCBkZSB1c3VhcmlvIHkgZWxpbWluYXJlbW9zIGxvcyBOQQ0KDQpgYGB7cn0NCnYxIDwtIGRhdGFfbWF0cml4ICU+JSBzZWxlY3QobmVnb2Npb19pZCwnMTQ4NjAnKSAgJT4lIGRyb3BfbmEoKQ0KdjEgJT4lIGthYmxlKCkNCmBgYA0KDQpzZWxlY2Npb25hcmVtb3Mgb3RybyBpZCBkZSB1c3VhcmlvIHBhcmEgdmVyIHF1ZSB0YW4gc2ltaWxhcmVzIHNvbiBjb24gZWwgYW50ZXJpb3INCg0KYGBge3J9DQp2MiA8LSBkYXRhX21hdHJpeCAlPiUgc2VsZWN0KG5lZ29jaW9faWQsJzIyMjUwNScpICAlPiUgZHJvcF9uYSgpDQp2MiAlPiUga2FibGUoKQ0KDQpgYGANCg0KSGFyZW1vcyB1c28gZGVsIGNvZWZpY2llbnRlIGRlIFsqKkphY2NhcmQqKl0oaHR0cHM6Ly9lbi53aWtpcGVkaWEub3JnL3dpa2kvSmFjY2FyZF9pbmRleCksIHNpZW5kbyBlbCBjb2NpZW50ZSBkZSBsYSBpbnRlcnNlY2Npw7NuIGRlIGRvcyBjb25qdW50b3MgZW50cmUgbGEgdW5pw7NuIGRlIGRpY2hvcyBjb25qdW50b3MuDQoNCiQgXGZyYWN7QSBcYmlnY2FwIEIgfXtBIFxiaWdjdXAgIEIgfSQNCg0KRW4gb3RyYXMgcGFsYWJyYXMgZGl2aWRpcmVtb3MgZWwgbnVtZXJvIGRlIGVsZW1lbnRvcyBxdWUgc2UgZW5jdWVudHJhbiBlbiBhbWJvcyBjb25qdW50b3MgZW50cmUgZWwgbnVtZXJvIGRlIGVsZW1lbnRvcyDDum5pY29zIGRlIGFtYm9zIGNvbmp1bnRvcy4NCg0KRWplbXBsbzoNCioqY29uanVudG9fQSA9IHthLGIsYyxjLGR9KioNCioqY29uanVudG9fQiA9IHtiLGQsZX0qKg0KDQokQSBcYmlnY2FwIEIkID0gKGIsZCkgZXMgZGVjaXIgc29sbyB0ZW5lbW9zICoqMioqIGVsZW1lbnRvcyBxdWUgc2UgZW5jdWVudHJhbiBlbiBBIHkgQg0KJEEgXGJpZ2NhcCBCJCA9IChhLGIsYyxkLGUpIGxvIGN1YWwgc2lnbmlmaWNhIGV4aXN0ZW4gKio1KiogZWxlbWVudG9zIMO6bmljb3MgZW4gYW1ib3MgY29uanVudG9zDQoNCiRqYWNjYXIgPSBcZnJhY3syfXs1fSA9IDAuNCQNCg0KRGUgdGFsIG1hbmVyYSBxdWUgZWwgw61uZGljZSBkZSBqYWNjYXJkIG5vcyBpbmRpY2EgcXVlIGVsIGNvbmp1bnRvIEEgeSBCIHNvbiBzaW1pbGFyZXMgZW4gKiowLjQqKiBlbiB1bmEgZXNjYWxhIGRlIDAgYSAxDQoNClJlZ3Jlc2FuZG8gYSBsb3MgMiB1c3VhcmlvcyBxdWUgdG9tYW1vcyBhbnRlcyB2ZWFtb3MgcXVlIHRhbiBzaW1pbGFyZXMgc29uDQoNCmBgYHtyfQ0KaW50ZXJzZWN0ID0gbGVuZ3RoKGludGVyc2VjdCh2MSRuZWdvY2lvX2lkLHYyJG5lZ29jaW9faWQpKQ0KdW5pb24gPSBsZW5ndGgodW5pcXVlKHYxJG5lZ29jaW9faWQsdjIkbmVnb2Npb19pZCkpDQoNCmphY2NhcmQgPSBpbnRlcnNlY3QvdW5pb24NCmphY2NhcmQNCmBgYA0KDQpMbyBjdWFsIHNpZ25pZmljYSBxdWUgYW1ib3MgdXN1YXJpb3Mgc29uIDAuMDkwOSBzaW1pbGFyZXMuDQoNCkEgY29udGludWFjacOzbiBjcmVhcmVtb3MgdW5hIGZ1bmNpw7NuIHF1ZSBub3MgYXl1ZGFyYSBhIGNhbGN1bGFyIGVsIMOtbmRpY2UgZGUgSmFjY2FyZA0KDQpgYGB7cn0NCg0KamFjY2FyZCA8LSBmdW5jdGlvbihpbmRleCx2Mix2MSkgew0KICB2MiA8LSBkYXRhLmZyYW1lKGluZGV4LHYyKQ0KICB2MiA8LSB2MiAlPiUgZHJvcF9uYSgpDQogIGxlbmd0aChpbnRlcnNlY3QodjEkbmVnb2Npb19pZCx2MiRpbmRleCkpL2xlbmd0aCh1bmlxdWUodjEkbmVnb2Npb19pZCx2MiRpbmRleCkpDQp9DQpgYGANCg0KQWhvcmEgYXBsaWNhcmVtb3MgZXN0YSBmdW5jacOzbiBhIHRvZGEgbGEgbWF0cml6IGFudGVzIGNyZWFkYSBwYXJhIGNvbm9jZXIgcXVlIHNpbWlsaXR1ZCBtYW50aWVuZSBjb24gY2FkYSB1bm8gZGUgbG9zIG90cm9zIHVzdWFyaW9zDQoNCmBgYHtyfQ0KI2NyZWFtb3MgZWwgdmVjdG9yIHF1ZSB1c2FyZW1vcyBwYXJhIGJ1c2NhciBlbCBjb2VmaWNpZW50ZSBkZSBqYWNjYXJkDQp2MSA8LSBkYXRhX21hdHJpeCAlPiUgc2VsZWN0KG5lZ29jaW9faWQsJzE0ODYwJykgJT4lIGRyb3BfbmEoKQ0KI2d1YXJkYW1vcyBsb3MgaW5kaWNlcyBkZSBsb3MgbmVnaWNpb3MNCmluZGV4IDwtIGRhdGFfbWF0cml4JG5lZ29jaW9faWQNCiMgYXBsaWNhbW9zIGVsIGNvZWZpY2llbnRlIGRlIGphY2NhcmQgcGFyYSB0b2RhcyBsYXMgY29sdW1uYXMNCnJlc3VsdCA8LSBzYXBwbHkoZGF0YV9tYXRyaXggJT4lIHNlbGVjdCgtMSwtJzE0ODYwJyksDQogICAgICAgICAgICAgICAgIGZ1bmN0aW9uKHgpIGphY2NhcmQoaW5kZXgseCx2MSkpDQoNCg0KIyBGaWx0cmFtb3MgbG9zIHJlc3VsdGFkb3MgcGFyYSBzb2xvIHF1ZWRhcm5vcyBjb24gYXF1ZWxsb3MgcXVlIHRpZW5lbiB1bg0KIyBjb2VmaWNpZW50ZSBtYXlvciBhIGNlcm8NCnJlc3VsdCA8LSByZXN1bHRbcmVzdWx0ID4gMF0NCiMgZ3VhcmRhbW9zIGxvcyBpZHMgZGUgbG9zIHVzdWFyaW9zDQpuYW1lcyA8LSByZXN1bHQgJT4lIG5hbWVzKCkNCg0KI29ic2VydmFtb3Mgc29sbyBlbCB0b3AgMTANCmRhdGEuZnJhbWUobmFtZXMgPSBuYW1lcyxzaW1pbGl0dWQgPSBjKHJlc3VsdCkpICU+JQ0KICAgYXJyYW5nZShkZXNjKHNpbWlsaXR1ZCkpICU+JSBoZWFkKDEwKQ0KYGBgDQoNClBlcmZlY3RvIQ0KDQpDb21vIHZlbW9zIGVsIHVzdWFyaW9zIGNvbiBlbCBJRCAxNDg2MCBtYW50aWVuZSB1bmEgbWF5b3Igc2ltaWxpdHVkIGNvbiBlbCB1c3VhcmlvcyA0NTcyMCwgYSBjb250aW51YWNpw7NuIHJlY29tZW5kYXJlbW9zIGx1Z2FyZXMgcXVlIHlhIHZpc2l0byBlbCBzZWd1bmRvIHVzdWFyaW9zIHkgcXVlIGVsIHByaW1lcm8gYXVuIG5vIGNvbm9jZQ0KYGBge3J9DQp2MSA8LSBkYXRhX21hdHJpeCAlPiUgc2VsZWN0KG5lZ29jaW9faWQsJzE0ODYwJykgJT4lIGRyb3BfbmEoKQ0KdjIgPC0gZGF0YV9tYXRyaXggJT4lIHNlbGVjdChuZWdvY2lvX2lkLCc0NTcyMCcpICU+JSBkcm9wX25hKCkNCg0KdjIkbmVnb2Npb19pZCBbIXYyJG5lZ29jaW9faWQgJWluJSB2MSRuZWdvY2lvX2lkXQ0KYGBgDQoNCkFob3JhIG1ldGFtb3MgdG9kbyBlc3RvIGVuIHVuYSBzb2xhIGZ1bmNpw7NuIGRvbmRlIHNlbGVjY2lvbmVtb3MgZWwgSUQgYWwgY3VhbCBub3MgaW50ZXJlc2EgcmVjb21lbmRhcmxlIGVzdGFibGVjaW1pZW50b3MgZGUgYWN1ZXJkbyBhIGVsIHVzdWFyaW9zIHF1ZSBtYXMgc2UgbGUgcGFyZXpjYQ0KDQpgYGB7cn0NCnJlY29tZW5kYWNpb24gPC0gZnVuY3Rpb24oaWQsZGF0YSkgew0KaWQgPC0gYXMuY2hhcmFjdGVyKGlkKQ0KI2NyZWFtb3MgZWwgdmVjdG9yIHF1ZSB1c2FyZW1vcyBwYXJhIGJ1c2NhciBlbCBjb2VmaWNpZW50ZSBkZSBqYWNjYXJkDQp2MSA8LSBkYXRhICU+JSBzZWxlY3QobmVnb2Npb19pZCxpZCkgJT4lIGRyb3BfbmEoKQ0KI2d1YXJkYW1vcyBsb3Mgw61uZGljZXMgZGUgbG9zIG5lZ29jaW9zDQppbmRleCA8LSBkYXRhJG5lZ29jaW9faWQNCiMgYXBsaWNhbW9zIGVsIGNvZWZpY2llbnRlIGRlIGphY2NhcmQgcGFyYSB0b2RhcyBsYXMgY29sdW1uYXMgZXhjZXB0byBsYSBwcmltZXJhDQojIHF1ZSBlcyBkb25kZSBzZSBlbmN1ZW50cmFuIGxvcyDDrW5kaWNlcyB5IGxhIGNvbHVtbmEgZGVsIHVzdWFyaW8NCnJlc3VsdCA8LSBzYXBwbHkoZGF0YSAlPiUgc2VsZWN0KC0xLC1pZCksDQogICAgICAgICAgICAgICAgIGZ1bmN0aW9uKHgpIGphY2NhcmQoaW5kZXgseCx2MSkpDQoNCg0KIyBGaWx0cmFtb3MgbG9zIHJlc3VsdGFkb3MgcGFyYSBzb2xvIHF1ZWRhcm5vcyBjb24gYXF1ZWxsb3MgcXVlIHRpZW5lbiB1bg0KIyBjb2VmaWNpZW50ZSBtYXlvciBhIGNlcm8NCnJlc3VsdCA8LSByZXN1bHRbcmVzdWx0ID4gMF0NCiMgZ3VhcmRhbW9zIGxvcyBpZHMgZGUgbG9zIHVzdWFyaW9zDQpuYW1lcyA8LSByZXN1bHQgJT4lIG5hbWVzKCkNCg0KaWRfcmVjb21lbmRlciA8LSBkYXRhLmZyYW1lKG5hbWVzID0gbmFtZXMsc2ltaWxpdHVkID0gYyhyZXN1bHQpKSAlPiUNCiAgIGFycmFuZ2UoZGVzYyhzaW1pbGl0dWQpKQ0KDQp2MiA8LSBkYXRhICU+JSBzZWxlY3QobmVnb2Npb19pZCxhcy5jaGFyYWN0ZXIoaWRfcmVjb21lbmRlclsxLDFdKSkgJT4lIGRyb3BfbmEoKQ0KDQpjYXQoIlF1aXrDoXMgdGUgaW50ZXJlc2VuIGVzdG9zIGx1Z2FyZXM6IFxuXG4iKQ0KZGF0YS5mcmFtZShuZWdvY2lvX2lkID0gKHYyJG5lZ29jaW9faWQgWyF2MiRuZWdvY2lvX2lkICVpbiUgdjEkbmVnb2Npb19pZF0pKSAlPiUNCiAga2FibGUoKQ0KDQp9DQpgYGANCg0KYGBge3J9DQpyZWNvbWVuZGFjaW9uKCIxOTAiLGRhdGFfbWF0cml4KQ0KYGBgDQoNCiMjIENvbmNsdXNpb25lcw0KDQpFc3RlIGVzIG51ZXN0cm8gcHJpbWVyIGVqZW1wbG8gZGUgYWxnb3JpdG1vIF9ObyBjbGFzaWZpY2Fkb18geSBudWVzdHJvIHByaW1lciBzaXN0ZW1hIGRlIHJlY29tZW5kYWNpw7NuLCBlcyB1biBlamVtcGxvIGV4Y2VsZW50ZSBwYXJhIGNvbXByZW5kZXIgYW1ib3MgY29uY2VwdG9zIHkgY29tbyB2aW1vcyBlbiBsYSBtZWRpZGEgcXVlIG9idGVuZ2Ftb3MgbWFzIGRhdGEgYWNlcmNhIGRlIGxvcyBpbnRlcmVzZXMgZGUgbG9zIHVzdWFyaW9zIGxhcyByZWNvbWVuZGFjaW9uZXMgc2Vyw6FuIG1lam9yIGRhZGFzLg0KVGUgaW52aXRvIGEgcXVlIGVsaWphcyB1biB1c3VhcmlvIHkgdmVhcyBxdWUgcmVjb21lbmRhY2lvbmVzIGV4aXN0ZW4gcGFyYSDDqWwsIHkgdGFtYmnDqW4gdGUgaW52aXRvIGEgcXVlIGVuIGx1Z2FyIGRlIGx1Z2FyZXMgdmlzaXRhZG9zIG1hcyBkZSB1bmEgdmV6IHNlYW4gbWFzIGRlIDUgdmVjZXMgwr9xdWUgaW1wbGljYWNpb25lcyB0ZW5kcsOhPyB5IMK/bWFzIGRlIDEwIHZlY2VzPy4gIA0KDQojIyBGdWVudGVzDQpbaHR0cHM6Ly90aWR5ci50aWR5dmVyc2Uub3JnL3JlZmVyZW5jZS9zcHJlYWQuaHRtbF0oaHR0cHM6Ly90aWR5ci50aWR5dmVyc2Uub3JnL3JlZmVyZW5jZS9zcHJlYWQuaHRtbCkNCltodHRwczovL2hhY2tlcm5vb24uY29tL3doYXQtaXMtb25lLWhvdC1lbmNvZGluZy13aHktYW5kLXdoZW4tZG8teW91LWhhdmUtdG8tdXNlLWl0LWUzYzYxODZkMDA4Zl0oaHR0cHM6Ly9oYWNrZXJub29uLmNvbS93aGF0LWlzLW9uZS1ob3QtZW5jb2Rpbmctd2h5LWFuZC13aGVuLWRvLXlvdS1oYXZlLXRvLXVzZS1pdC1lM2M2MTg2ZDAwOGYpDQo=</div>
 
 
 

@@ -1,0 +1,242 @@
+---
+title: "R Notebook"
+output:
+  md_document:
+    variant: markdown_github
+  html_notebook: null
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r include=FALSE}
+options(digits=3)
+```
+
+
+En el anterior [post](https://alonmar.github.io/knn-comida/), hablábamos de un algoritmo que se encuentra en la categoría de algoritmos ***supervisados**, ya que cada observación tiene una etiqueta que indica la clase correspondiente, ahora toca el turno de un ejemplo de algoritmo **no supervisado**. Crearemos un sistema de recomendaciones para visitar nuevos negocios.
+
+Después de completar este tutorial, sabrás:
+
++ Que es el coeficiente jaccard
++ Crear una matriz one hot  
++ Como crear un sistema de recomendaciones  
+
+Nos apoyaremos del [dataset](https://sites.google.com/site/yangdingqi/home/foursquare-dataset) el cual incluye los ids de personas y negocios, y las visitas que hicieron las personas a dichos negocios tomado de [foursquare](https://es.foursquare.com/)
+
+
+```{r message=FALSE, warning=FALSE}
+#cargamos los paquetes necesarios
+library(tidyverse) #Manipulación
+library(knitr)     #Presentación de tablas
+
+```
+
+Cargamos la base de datos
+
+```{r message=FALSE, warning=FALSE}
+data <- read_csv("data/checkins.csv")
+#Nombramos las variables
+names(data) <- c("user_id","negocio_id")
+head(data,10) %>% kable()
+```
+
+Veamos cuantas veces visito cada persona a cada negocio
+
+```{r}
+
+data %>% group_by(user_id,negocio_id) %>%
+  summarise(n = n()) %>% arrange(desc(n)) %>%
+  head(15) %>% kable()
+```
+
+Como vimos  si una persona visita mas de una vez un mismo lugar esa observación aparecerá dos veces. Veamos cuantas personas y negocios únicos tenemos
+
+```{r}
+cat("Usuarios unicos: ")
+cat(unique(data$user_id) %>% length())
+cat("\n")
+cat("Negocios unicos: ")
+cat(unique(data$negocio_id) %>% length())
+```
+
+Para este tutorial elimináramos las observaciones que solo tienen una visita, ya que nos puede indicar que no se tomo la molestia de regresar a ese negocio, en cambio nos quedaremos con aquellos que regresaron una o mas veces.
+
+```{r}
+filter_data <- data %>% group_by(user_id,negocio_id) %>%
+  summarise(n = n()) %>% arrange(desc(n)) %>% filter(n > 1)
+
+filter_data %>% head(5) %>%  kable()
+filter_data %>% tail(5) %>%  kable()
+
+```
+
+Ahora lo que haremos es lo que se conoce como [**one hot coding**](https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f).
+Básicamente se trata de crear una matriz donde si un valor corresponde tendremos un **"1"** y de lo contrario tendremos un **0**
+
+Veamos esta tabla:
+
+```{r echo=FALSE}
+tibble('Author'= c('Juan Rulfo','Gabriel García Márquez','Octavio Paz'),
+       'Nacionalidad' = c('MEX','COL','MEX')
+  ) %>% kable()
+```
+
+Ahora transformada en one-hot se vería así
+```{r echo=FALSE}
+tibble('Author'= c('Juan Rulfo','Gabriel García Márquez','Octavio Paz'),
+       'Nacionalidad' = c('MEX','COL','MEX')
+  ) %>% mutate(count= 1) %>%
+  spread(Nacionalidad,count,fill = 0)  %>% kable()
+```
+
+
+Sin embargo para nuestro ejemplo colocaremos NAs en lugar de ceros, ya que nos apoyaremos de la función **drop_na()**.
+
+
+De tal manera que esta sería nuestra nueva matriz, donde las filas corresponden a cada ID de negocio, y las columnas a cada ID de usuario.
+
+
+```{r}
+data_matrix <- filter_data %>% select(-n) %>%
+  mutate(count= 1) %>%
+  spread(user_id,count)
+
+data_matrix[1:10,1:10] %>% kable()
+```
+
+Solo vemos NAs, ya que para esos negocios y esos usuario no existe interacción, sin embargo veamos un caso concreto
+
+Seleccionemos un id de usuario y eliminaremos los NA
+
+```{r}
+v1 <- data_matrix %>% select(negocio_id,'14860')  %>% drop_na()
+v1 %>% kable()
+```
+
+seleccionaremos otro id de usuario para ver que tan similares son con el anterior
+
+```{r}
+v2 <- data_matrix %>% select(negocio_id,'222505')  %>% drop_na()
+v2 %>% kable()
+
+```
+
+Haremos uso del coeficiente de [**Jaccard**](https://en.wikipedia.org/wiki/Jaccard_index), siendo el cociente de la intersección de dos conjuntos entre la unión de dichos conjuntos.
+
+$ \frac{A \bigcap B }{A \bigcup  B }$
+
+En otras palabras dividiremos el numero de elementos que se encuentran en ambos conjuntos entre el numero de elementos únicos de ambos conjuntos.
+
+Ejemplo:
+**conjunto_A = {a,b,c,c,d}**
+**conjunto_B = {b,d,e}**
+
+$A \bigcap B$ = (b,d) es decir solo tenemos **2** elementos que se encuentran en A y B
+$A \bigcap B$ = (a,b,c,d,e) lo cual significa existen **5** elementos únicos en ambos conjuntos
+
+$jaccar = \frac{2}{5} = 0.4$
+
+De tal manera que el índice de jaccard nos indica que el conjunto A y B son similares en **0.4** en una escala de 0 a 1
+
+Regresando a los 2 usuarios que tomamos antes veamos que tan similares son
+
+```{r}
+intersect = length(intersect(v1$negocio_id,v2$negocio_id))
+union = length(unique(v1$negocio_id,v2$negocio_id))
+
+jaccard = intersect/union
+jaccard
+```
+
+Lo cual significa que ambos usuarios son 0.0909 similares.
+
+A continuación crearemos una función que nos ayudara a calcular el índice de Jaccard
+
+```{r}
+
+jaccard <- function(index,v2,v1) {
+  v2 <- data.frame(index,v2)
+  v2 <- v2 %>% drop_na()
+  length(intersect(v1$negocio_id,v2$index))/length(unique(v1$negocio_id,v2$index))
+}
+```
+
+Ahora aplicaremos esta función a toda la matriz antes creada para conocer que similitud mantiene con cada uno de los otros usuarios
+
+```{r}
+#creamos el vector que usaremos para buscar el coeficiente de jaccard
+v1 <- data_matrix %>% select(negocio_id,'14860') %>% drop_na()
+#guardamos los indices de los negicios
+index <- data_matrix$negocio_id
+# aplicamos el coeficiente de jaccard para todas las columnas
+result <- sapply(data_matrix %>% select(-1,-'14860'),
+                 function(x) jaccard(index,x,v1))
+
+
+# Filtramos los resultados para solo quedarnos con aquellos que tienen un
+# coeficiente mayor a cero
+result <- result[result > 0]
+# guardamos los ids de los usuarios
+names <- result %>% names()
+
+#observamos solo el top 10
+data.frame(names = names,similitud = c(result)) %>%
+   arrange(desc(similitud)) %>% head(10)
+```
+
+Perfecto!
+
+Como vemos el usuarios con el ID 14860 mantiene una mayor similitud con el usuarios 45720, a continuación recomendaremos lugares que ya visito el segundo usuarios y que el primero aun no conoce
+```{r}
+v1 <- data_matrix %>% select(negocio_id,'14860') %>% drop_na()
+v2 <- data_matrix %>% select(negocio_id,'45720') %>% drop_na()
+
+v2$negocio_id [!v2$negocio_id %in% v1$negocio_id]
+```
+
+Ahora metamos todo esto en una sola función donde seleccionemos el ID al cual nos interesa recomendarle establecimientos de acuerdo a el usuarios que mas se le parezca
+
+```{r}
+recomendacion <- function(id,data) {
+id <- as.character(id)
+#creamos el vector que usaremos para buscar el coeficiente de jaccard
+v1 <- data %>% select(negocio_id,id) %>% drop_na()
+#guardamos los índices de los negocios
+index <- data$negocio_id
+# aplicamos el coeficiente de jaccard para todas las columnas excepto la primera
+# que es donde se encuentran los índices y la columna del usuario
+result <- sapply(data %>% select(-1,-id),
+                 function(x) jaccard(index,x,v1))
+
+
+# Filtramos los resultados para solo quedarnos con aquellos que tienen un
+# coeficiente mayor a cero
+result <- result[result > 0]
+# guardamos los ids de los usuarios
+names <- result %>% names()
+
+id_recomender <- data.frame(names = names,similitud = c(result)) %>%
+   arrange(desc(similitud))
+
+v2 <- data %>% select(negocio_id,as.character(id_recomender[1,1])) %>% drop_na()
+
+cat("Quizás te interesen estos lugares: \n\n")
+data.frame(negocio_id = (v2$negocio_id [!v2$negocio_id %in% v1$negocio_id])) %>%
+  kable()
+
+}
+```
+
+```{r}
+recomendacion("190",data_matrix)
+```
+
+## Conclusiones
+
+Este es nuestro primer ejemplo de algoritmo _No clasificado_ y nuestro primer sistema de recomendación, es un ejemplo excelente para comprender ambos conceptos y como vimos en la medida que obtengamos mas data acerca de los intereses de los usuarios las recomendaciones serán mejor dadas.
+Te invito a que elijas un usuario y veas que recomendaciones existen para él, y también te invito a que en lugar de lugares visitados mas de una vez sean mas de 5 veces ¿que implicaciones tendrá? y ¿mas de 10 veces?.  
+
+
+https://tidyr.tidyverse.org/reference/spread.html
+https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f

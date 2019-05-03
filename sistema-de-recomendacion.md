@@ -101,7 +101,10 @@ filter_data %>% tail(5) %>%  kable()
 |    266712|         4889|    2|
 |    266712|         9953|    2|
 
-Ahora lo que haremos es lo que se conoce como [**one hot coding**](https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f). Básicamente se trata de crear una matriz donde si un valor corresponde tendremos un **"1"** y de lo contrario tendremos un **0**
+One Hot Coding
+--------------
+
+Ahora lo que haremos es lo que se conoce como [**one hot coding**](https://hackernoon.com/what-is-one-hot-encoding-why-and-when-do-you-have-to-use-it-e3c6186d008f). A continuación explicare brevemente como crear una matriz en formato one hot coding. Básicamente se trata de crear una matriz donde si un valor corresponde tendremos un **1** y de lo contrario tendremos un **0**
 
 Veamos esta tabla:
 
@@ -111,7 +114,7 @@ Veamos esta tabla:
 | Gabriel García Márquez | COL          |
 | Octavio Paz            | MEX          |
 
-Ahora transformada en one-hot se vería así
+En la anterior tabla se observa como que tanto Juan Rulfo como Octavio Paz son mexicanos, por lo tanto al transformar en la columna **Mex** le corresponde **1** y en la columna **Col** un **0** Ahora transformada en one-hot se vería así
 
 | Author                 |  COL|  MEX|
 |:-----------------------|----:|----:|
@@ -119,7 +122,7 @@ Ahora transformada en one-hot se vería así
 | Juan Rulfo             |    0|    1|
 | Octavio Paz            |    0|    1|
 
-Sin embargo para nuestro ejemplo colocaremos NAs en lugar de ceros, ya que nos apoyaremos de la función **drop\_na()**.
+(Si quieres saber mas sobre one-hoy te recomiendo este [link](https://machinelearningmastery.com/why-one-hot-encode-data-in-machine-learning/) ) Sin embargo para nuestro ejemplo colocaremos NAs en lugar de ceros, ya que nos apoyaremos de la función **drop\_na()**.
 
 De tal manera que esta sería nuestra nueva matriz, donde las filas corresponden a cada ID de negocio, y las columnas a cada ID de usuario.
 
@@ -147,6 +150,28 @@ data_matrix[1:10,1:10] %>% kable()
 Solo vemos NAs, ya que para esos negocios y esos usuario no existe interacción, sin embargo veamos un caso concreto
 
 Seleccionemos un id de usuario y eliminaremos los NA
+
+Índice de Jaccard
+-----------------
+
+Haremos uso del coeficiente de [**Jaccard**](https://en.wikipedia.org/wiki/Jaccard_index), siendo el cociente de la intersección de dos conjuntos entre la unión de dichos conjuntos.
+
+$$ jaccar = \\frac{A \\bigcap B }{A \\bigcup  B }$$
+
+En otras palabras dividiremos el numero de elementos que se encuentran en ambos conjuntos entre el numero de elementos únicos de ambos conjuntos.
+
+Ejemplo: **conjunto\_A = {a,b,c,c,d}** **conjunto\_B = {b,d,e}**
+
+*A*⋂*B*
+ = (b,d) es decir solo tenemos **2** elementos que se encuentran en A y B
+*A*⋂*B*
+ = (a,b,c,d,e) lo cual significa existen **5** elementos únicos en ambos conjuntos
+
+$$jaccar = \\frac{2}{5} = 0.4$$
+
+De tal manera que el índice de jaccard nos indica que el conjunto A y B son similares en **0.4** en una escala de 0 a 1
+
+Regresando a nuestros datos seleccionaremos dos usuarios para determinar que tan similares son
 
 ``` r
 v1 <- data_matrix %>% select(negocio_id,'14860')  %>% drop_na()
@@ -179,36 +204,17 @@ v2 %>% kable()
 |          177|       1|
 |         5867|       1|
 
-Haremos uso del coeficiente de [**Jaccard**](https://en.wikipedia.org/wiki/Jaccard_index), siendo el cociente de la intersección de dos conjuntos entre la unión de dichos conjuntos.
-
-$$ \\frac{A \\bigcap B }{A \\bigcup  B }$$
-
-En otras palabras dividiremos el numero de elementos que se encuentran en ambos conjuntos entre el numero de elementos únicos de ambos conjuntos.
-
-Ejemplo: **conjunto\_A = {a,b,c,c,d}** **conjunto\_B = {b,d,e}**
-
-*A*⋂*B*
- = (b,d) es decir solo tenemos **2** elementos que se encuentran en A y B
-*A*⋂*B*
- = (a,b,c,d,e) lo cual significa existen **5** elementos únicos en ambos conjuntos
-
-$$jaccar = \\frac{2}{5} = 0.4$$
-
-De tal manera que el índice de jaccard nos indica que el conjunto A y B son similares en **0.4** en una escala de 0 a 1
-
-Regresando a los 2 usuarios que tomamos antes veamos que tan similares son
-
 ``` r
 intersect = length(intersect(v1$negocio_id,v2$negocio_id))
-union = length(unique(v1$negocio_id,v2$negocio_id))
+union = length(unique(c(v1$negocio_id,v2$negocio_id)))
 
 jaccard = intersect/union
 jaccard
 ```
 
-    ## [1] 0.0909
+    ## [1] 0.0833
 
-Lo cual significa que ambos usuarios son 0.0909 similares.
+Lo cual significa que ambos usuarios son 0.0833 similares.
 
 A continuación crearemos una función que nos ayudara a calcular el índice de Jaccard
 
@@ -216,7 +222,9 @@ A continuación crearemos una función que nos ayudara a calcular el índice de 
 jaccard <- function(index,v2,v1) {
   v2 <- data.frame(index,v2)
   v2 <- v2 %>% drop_na()
-  length(intersect(v1$negocio_id,v2$index))/length(unique(v1$negocio_id,v2$index))
+  intersect = length(intersect(v1$negocio_id,v2$index))
+  union = length(unique(c(v1$negocio_id,v2$index)))
+  intersect/union
 }
 ```
 
@@ -236,44 +244,39 @@ result <- sapply(data_matrix %>% select(-1,-'14860'),
 # coeficiente mayor a cero
 result <- result[result > 0]
 # guardamos los ids de los usuarios
-names <- result %>% names()
+usuario <- result %>% names()
 
 #observamos solo el top 10
-data.frame(names = names,similitud = c(result)) %>%
+data.frame(usuario = usuario,similitud = c(result)) %>%
    arrange(desc(similitud)) %>% head(10)
 ```
 
-    ##     names similitud
-    ## 1   45720    0.1818
-    ## 2  181505    0.1818
-    ## 3     836    0.0909
-    ## 4    1174    0.0909
-    ## 5    1581    0.0909
-    ## 6    2637    0.0909
-    ## 7    4403    0.0909
-    ## 8    6083    0.0909
-    ## 9    6243    0.0909
-    ## 10   6998    0.0909
+    ##    usuario similitud
+    ## 1   181505    0.1176
+    ## 2     1174    0.0909
+    ## 3    27588    0.0909
+    ## 4    28733    0.0909
+    ## 5    51971    0.0909
+    ## 6    69153    0.0909
+    ## 7     1581    0.0833
+    ## 8     4403    0.0833
+    ## 9     9409    0.0833
+    ## 10   30939    0.0833
 
 Perfecto!
 
-Como vemos el usuarios con el ID 14860 mantiene una mayor similitud con el usuarios 45720, a continuación recomendaremos lugares que ya visito el segundo usuarios y que el primero aun no conoce
+Como vemos el usuarios con el ID 14860 mantiene una mayor similitud con el usuarios 181505, a continuación recomendaremos lugares que ya visito el segundo usuarios y que el primero aun no conoce
 
 ``` r
 v1 <- data_matrix %>% select(negocio_id,'14860') %>% drop_na()
-v2 <- data_matrix %>% select(negocio_id,'45720') %>% drop_na()
+v2 <- data_matrix %>% select(negocio_id,'181505') %>% drop_na()
 
 v2$negocio_id [!v2$negocio_id %in% v1$negocio_id]
 ```
 
-    ##  [1]     155     243     639     653     985    1483    4920    6434
-    ##  [9]    6764    7507    7999    8953    9307    9448   10192   10784
-    ## [17]   12159   12496   12500   12833   12875   12910   13233   13661
-    ## [25]   13890   14714   15139   15189   15463   16506   18177   18191
-    ## [33]   25695   25791   25883   26051   27553   28788   29594   31548
-    ## [41]   32783   71641  108408  136335 1760748
+    ## [1] 11193 13307 15176 15647 17675 27315
 
-Ahora metamos todo esto en una sola función donde seleccionemos el ID al cual nos interesa recomendarle establecimientos de acuerdo a el usuarios que mas se le parezca
+Ahora metamos todo esto en una sola función donde seleccionemos el ID del usuario que nos interesa recomendarle establecimientos en función del usuarios que mas se le parezca
 
 ``` r
 recomendacion <- function(id,data) {
@@ -292,31 +295,38 @@ result <- sapply(data %>% select(-1,-id),
 # coeficiente mayor a cero
 result <- result[result > 0]
 # guardamos los ids de los usuarios
-names <- result %>% names()
+usuario <- result %>% names()
 
-id_recomender <- data.frame(names = names,similitud = c(result)) %>%
+id_recomender <- data.frame(usuario = usuario,similitud = c(result)) %>%
    arrange(desc(similitud))
 
-v2 <- data %>% select(negocio_id,as.character(id_recomender[1,1])) %>% drop_na()
+top_1 <- as.character(id_recomender$usuario[1])
+v2 <- data %>% select(negocio_id, top_1 ) %>% drop_na()
 
-cat("Quizás te interesen estos lugares: \n\n")
+cat("El usuario que guarda mayor similitud con",id ,"es:" ,top_1, '\n',
+    "con una indice de",id_recomender$similitud[1],"\n\n")
+cat("Quizás le interesen estos lugares: \n\n")
 data.frame(negocio_id = (v2$negocio_id [!v2$negocio_id %in% v1$negocio_id])) %>%
   kable()
 
 }
 ```
 
+¿Que le podemos recomendar al usuario 190?
+
 ``` r
 recomendacion("190",data_matrix)
 ```
 
-    ## Quizás te interesen estos lugares:
+    ## El usuario que guarda mayor similitud con 190 es: 258663
+    ##  con una indice de 0.333
+    ##
+    ## Quizás le interesen estos lugares:
 
 |  negocio\_id|
 |------------:|
-|         2585|
-|        13119|
-|        13233|
+|          102|
+|         1101|
 
 Conclusiones
 ------------
